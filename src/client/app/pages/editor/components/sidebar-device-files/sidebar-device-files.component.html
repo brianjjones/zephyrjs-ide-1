@@ -1,0 +1,25 @@
+<div class="title">
+    Device Filesystem
+</div>
+
+<ul *ngIf="fileService.count() > 0">
+    <li *ngFor="let filename of fileService.ls()">
+        <a href="#" class="filename" (click)="onFilenameClicked(filename)">
+            {{ filename }}
+            <div class="size">
+                {{ computeFileSize(filename) }} bytes
+            </div>
+        </a>
+
+        <a href="#" class="delete" (click)="onDeleteFileClicked(filename)">
+            <fa [name]="'trash'"></fa>
+        </a>
+        <a href="#" class="rename" (click)="onRenameFileClicked(filename)">
+            <fa [name]="'play'"></fa>
+        </a>
+    </li>
+</ul>
+
+<p *ngIf="fileService.count() === 0" class="empty">
+    You have no saved files on this device.
+</p>
