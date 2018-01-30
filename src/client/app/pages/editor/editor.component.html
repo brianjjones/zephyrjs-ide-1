@@ -59,6 +59,17 @@
                 </a>
             </li>
         </ul>
+        <li>
+            <a href="#" class="device_files"
+               [class.active]="secondarySidebarOptions.content === 'device_files'"
+               (click)="onFilesClicked()">
+                <fa [name]="'folder'"></fa>
+                <span *ngIf="sidebarOptions.opened">
+                    Device Files
+                    <span class="count">({{ fileService.count() }})</span>
+                </span>
+            </a>
+        </li>
 
         <button class="toggleCollapse" (click)="onToggleSidebar()">
             <span *ngIf="sidebarOptions.opened">
@@ -107,6 +118,11 @@
                 *ngIf="secondarySidebarOptions.content === 'settings'"
                 class="settings">
             </sd-sidebar-settings>
+
+            <sd-sidebar-device-files
+                *ngIf="secondarySidebarOptions.content === 'device_files'"
+                class="device_files">
+            </sd-sidebar-device-files>
         </ng-sidebar>
 
         <vertical-split-pane
