@@ -116,6 +116,18 @@ export class WebUsbService {
         return this.port.stop();
     }
 
+    public load(data: string) : Promise<string> {
+        return this.port.load(data);
+    }
+
+    public rm(data: string) : Promise<string> {
+        return this.port.rm(data);
+    }
+
+    public count() : number {
+        return this.port.count();
+    }
+
     public save(filename: string, data: string): Promise<string> {
         if (this.port === null) {
             return new Promise<string>((resolve, reject) => {

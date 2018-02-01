@@ -255,6 +255,37 @@ export class WebUsbPort {
         return this.send('stop\n');
     }
 
+    public ls(): Promise<string> {
+        return this.send('ls\n');
+    }
+
+    public load(data: string): Promise<string> {
+        return this.send('cat ' + data + '\n');
+    }
+
+    public rm(data: string): Promise<string> {
+        return this.send('rm ' + data + '\n');
+    }
+
+    public lsArray(): Array<string> {
+        //let prefixLength = this.PREFIX.length;
+        let lsStr = this.ls();
+        let files: Array<string> = [];
+        lsStr.then((res) => {
+            files = res.split('\n');
+            return files;
+        });
+        lsStr.catch((err) => {
+            console.log('I get called:', err.message); // I get called: 'Something awful happened'
+            return files;
+        });
+        return ["Hello", "World"];
+    }
+
+    public count(): number {
+        return this.lsArray().length;
+    }
+
     private convIHex(source: string): string {
       let array = intArrayFromString(source);
       let ptr = allocate(array, 'i8', ALLOC_NORMAL);

@@ -58,19 +58,18 @@
                     </span>
                 </a>
             </li>
+            <li>
+                <a href="#" class="device_files"
+                   [class.active]="secondarySidebarOptions.content === 'device_files'"
+                   (click)="onDeviceFileDeletedFilesClicked()">
+                    <fa [name]="'folder'"></fa>
+                    <span *ngIf="sidebarOptions.opened">
+                        Device Files
+                        <span class="count">({{ webusbService.count() }})</span>
+                    </span>
+                </a>
+            </li>
         </ul>
-        <li>
-            <a href="#" class="device_files"
-               [class.active]="secondarySidebarOptions.content === 'device_files'"
-               (click)="onFilesClicked()">
-                <fa [name]="'folder'"></fa>
-                <span *ngIf="sidebarOptions.opened">
-                    Device Files
-                    <span class="count">({{ fileService.count() }})</span>
-                </span>
-            </a>
-        </li>
-
         <button class="toggleCollapse" (click)="onToggleSidebar()">
             <span *ngIf="sidebarOptions.opened">
                 <fa [name]="'angle-double-left'"></fa>

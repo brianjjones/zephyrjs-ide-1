@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
-import { FileService } from '../../file.service';
+import { WebUsbService } from '../../../../shared/webusb/webusb.service';
+import { WebUsbPort } from '../../../../shared/webusb/webusb.port';
 
 
 @Component({
@@ -8,38 +9,39 @@ import { FileService } from '../../file.service';
     selector: 'sd-sidebar-device-files',
     templateUrl: 'sidebar-device-files.component.html',
     styleUrls: ['sidebar-device-files.component.css'],
-    providers: [FileService]
+    providers: [WebUsbService]
 })
 export class SidebarDeviceFilesComponent {
     @Output()
-    private onFileSelected = new EventEmitter();
+    private onDeviceFile = new EventEmitter();
 
     @Output()
-    private onFileDeleted = new EventEmitter();
+    private onDeviceFileDeleted = new EventEmitter();
 
 
-    constructor(public fileService: FileService) { }
+    constructor(public webusbService: WebUsbService) { }
 
     // tslint:disable-next-line:no-unused-locals
-    public onFilenameClicked(filename: string) {
-        this.onFileSelected.emit({
+    public onDeviceFilenameClicked(filename: string) {
+        this.onDeviceFile.emit({
             filename: filename,
-            contents: this.fileService.load(filename)
+            contents: this.webusbService.load(filename)
         });
         return false;
     }
 
     // tslint:disable-next-line:no-unused-locals
     public computeFileSize(filename: string) {
-        let contents = this.fileService.load(filename);
-        let m = encodeURIComponent(contents).match(/%[89ABab]/g);
-        return contents.length + (m ? m.length : 0);
+        let contents = this.webusbService.load(filename);
+    //    let m = encodeURIComponent(contents).match(/%[89ABab]/g);
+    //    return contents.length + (m ? m.length : 0);
+        return 100;
     }
 
     // tslint:disable-next-line:no-unused-locals
     public onDeleteFileClicked(filename: string) {
-        this.fileService.delete(filename);
-        this.onFileDeleted.emit(filename);
+        this.webusbService.rm(filename);
+        this.onDeviceFileDeleted.emit(filename);
         return false;
     }
 }
