@@ -267,23 +267,32 @@ export class WebUsbPort {
         return this.send('rm ' + data + '\n');
     }
 
-    public lsArray(): Array<string> {
+    public lsArray(): Promise<Array<string>> {
+    //    console.log("bjones running lsArray");
+
         //let prefixLength = this.PREFIX.length;
         let lsStr = this.ls();
         let files: Array<string> = [];
-        lsStr.then((res) => {
-            files = res.split('\n');
-            return files;
+        return new Promise<Array<string>>((resolve, reject) => {
+            lsStr.then((res) => {
+                files = res.split('\n');
+                return files;
+            });
+            lsStr.catch((err) => {
+                console.log('I get called:', err.message); // I get called: 'Something awful happened'
+                return files;
+            });
         });
-        lsStr.catch((err) => {
-            console.log('I get called:', err.message); // I get called: 'Something awful happened'
-            return files;
-        });
-        return ["Hello", "World"];
+        //return ["Hello", "World"];
     }
 
-    public count(): number {
-        return this.lsArray().length;
+    public count(): Promise<number> {
+        let ls = this.lsArray();
+        return new Promise<number>((resolve, reject) => {
+            ls.then((res) => {
+                res.length;
+            });
+        });
     }
 
     private convIHex(source: string): string {

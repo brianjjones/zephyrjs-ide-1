@@ -153,6 +153,19 @@ export class EditorComponent {
     }
 
     // tslint:disable-next-line:no-unused-locals
+    public onDeviceFilesClicked() {
+        if (this.secondarySidebarOptions.opened &&
+            this.secondarySidebarOptions.content === 'device') {
+            this.onCloseSecondarySidebar();
+        } else {
+            this.secondarySidebarOptions.content = 'device';
+            this.secondarySidebarOptions.opened = true;
+            this._adjustBackdropPosition();
+        }
+        return false;
+    }
+
+    // tslint:disable-next-line:no-unused-locals
     public onFileSelected(file: any) {
         // Switch to it if we already have it open
         for(let tab of this.tabs) {

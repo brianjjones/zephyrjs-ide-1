@@ -124,8 +124,33 @@ export class WebUsbService {
         return this.port.rm(data);
     }
 
+    public lsTest(): Array<string> {
+        return ["THIS", "IS", "A", "TEST"];
+    }
+
+    public lsArray(): Array<string> {
+        if (this.port) {
+            //console.log("Bjones HIT LSARRAY");
+            //return ["THIS", "IS", "A", "TEST"];
+            return this.port.lsArray();
+        }
+        return ["test", "a", "is", "this"];
+    }
+
+    public countSide() : number {
+        if (this.port) {
+            return 14;
+            //return this.port.count();
+        }
+        return 0;
+    }
+
     public count() : number {
-        return this.port.count();
+        if (this.port) {
+            //return 4;
+            return this.port.count();
+        }
+        return 4;
     }
 
     public save(filename: string, data: string): Promise<string> {

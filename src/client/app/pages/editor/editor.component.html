@@ -58,14 +58,14 @@
                     </span>
                 </a>
             </li>
-            <li>
-                <a href="#" class="device_files"
-                   [class.active]="secondarySidebarOptions.content === 'device_files'"
-                   (click)="onDeviceFileDeletedFilesClicked()">
+            <li  *ngIf="webusbService.isConnected() === true">
+                <a href="#" class="device"
+                   [class.active]="secondarySidebarOptions.content === 'device'"
+                   (click)="onDeviceFilesClicked()">
                     <fa [name]="'folder'"></fa>
                     <span *ngIf="sidebarOptions.opened">
-                        Device Files
-                        <span class="count">({{ webusbService.count() }})</span>
+                        Device
+                        <span class="count">({{ webusbService.countSide() }})</span>
                     </span>
                 </a>
             </li>
@@ -119,8 +119,8 @@
             </sd-sidebar-settings>
 
             <sd-sidebar-device-files
-                *ngIf="secondarySidebarOptions.content === 'device_files'"
-                class="device_files">
+                *ngIf="secondarySidebarOptions.content === 'device'"
+                class="device">
             </sd-sidebar-device-files>
         </ng-sidebar>
 

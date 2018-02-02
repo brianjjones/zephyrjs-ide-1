@@ -1,17 +1,17 @@
 <div class="title">
-    Device_Filesystem
+    Device
 </div>
 
 <ul *ngIf="webusbService.count() > 0">
     <li *ngFor="let filename of webusbService.lsArray()">
         <a href="#" class="filename" (click)="onDeviceFilenameClicked(filename)">
-            {{ filename }}
+            {{ filename | async }}
             <div class="size">
-                {{ computeFileSize(filename) }} bytes
+                {{ computeDeviceFileSize(filename) }} bytes
             </div>
         </a>
 
-        <a href="#" class="delete" (click)="onDeleteFileClicked(filename)">
+        <a href="#" class="delete" (click)="onDeleteDeviceFileClicked(filename)">
             <fa [name]="'trash'"></fa>
         </a>
 
@@ -19,5 +19,5 @@
 </ul>
 
 <p *ngIf="webusbService.count() === 0" class="empty">
-    You have no saved files on this device.
+    You have no saved files on this device!!!
 </p>
