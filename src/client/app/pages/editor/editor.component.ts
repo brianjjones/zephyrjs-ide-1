@@ -12,7 +12,7 @@ import { FileService } from './file.service';
 import { ExampleService } from './example.service';
 import { EditorTab } from './editor.tab';
 import { WebUsbService } from '../../shared/webusb/webusb.service';
-
+import { SidebarDeviceFilesModule } from './components/sidebar-device-files/sidebar-device-files.module';
 
 @Component({
     moduleId: module.id,
@@ -56,7 +56,8 @@ export class EditorComponent {
         public fileService: FileService,
         private localStorageService: LocalStorageService,
         private notificationsService: NotificationsService,
-        public webusbService: WebUsbService) {
+        public webusbService: WebUsbService,
+        public deviceFiles: SidebarDeviceFilesModule) {
 
         this.tabs = appDataService.editorTabs;
 
@@ -158,6 +159,7 @@ export class EditorComponent {
             this.secondarySidebarOptions.content === 'device') {
             this.onCloseSecondarySidebar();
         } else {
+            //this.deviceFiles.getDeviceFiles();
             this.secondarySidebarOptions.content = 'device';
             this.secondarySidebarOptions.opened = true;
             this._adjustBackdropPosition();

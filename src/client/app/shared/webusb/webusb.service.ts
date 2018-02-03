@@ -128,13 +128,15 @@ export class WebUsbService {
         return ["THIS", "IS", "A", "TEST"];
     }
 
-    public lsArray(): Array<string> {
-        if (this.port) {
-            //console.log("Bjones HIT LSARRAY");
-            //return ["THIS", "IS", "A", "TEST"];
-            return this.port.lsArray();
-        }
-        return ["test", "a", "is", "this"];
+    public lsArray(): Promise<Array<string>> {
+        // if (this.port) {
+        //     //console.log("Bjones HIT LSARRAY");
+        //     //return ["THIS", "IS", "A", "TEST"];
+        //     return this.port.lsArray();
+        // }
+        return new Promise<Array<string>>((resolve, reject) => {
+            return ["test", "a", "is", "this"];
+        });
     }
 
     public countSide() : number {
@@ -145,12 +147,16 @@ export class WebUsbService {
         return 0;
     }
 
-    public count() : number {
-        if (this.port) {
-            //return 4;
-            return this.port.count();
-        }
-        return 4;
+    public count() : Promise<number> {
+        // if (this.port) {
+        //     //return 4;
+        //     return this.port.count();
+        // }
+        return new Promise((resolve, reject) => {
+            setTimeout(function(){
+                resolve(55); // Yay! Everything went well!
+            }, 250);
+        });
     }
 
     public save(filename: string, data: string): Promise<string> {
