@@ -148,15 +148,15 @@ export class WebUsbService {
     }
 
     public count() : Promise<number> {
-        // if (this.port) {
-        //     //return 4;
-        //     return this.port.count();
-        // }
+        if (this.port) {
+            //return 4;
+            return this.port.count();
+        } else {
         return new Promise((resolve, reject) => {
             setTimeout(function(){
                 resolve(55); // Yay! Everything went well!
             }, 250);
-        });
+        });}
     }
 
     public save(filename: string, data: string): Promise<string> {

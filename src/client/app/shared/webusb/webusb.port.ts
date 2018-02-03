@@ -169,7 +169,7 @@ export class WebUsbPort {
             }
 
             this.device.transferOut(2, this.encoder.encode(data))
-            .then(() => { resolve(); })
+            .then((res) => { resolve(res); })
             .catch((error: string) => { reject(error); });
         });
     }
@@ -271,28 +271,52 @@ export class WebUsbPort {
     //    console.log("bjones running lsArray");
 
         //let prefixLength = this.PREFIX.length;
-        let lsStr = this.ls();
+        let lsFiles = this.ls();
+        let lsRead = this.read();
         let files: Array<string> = [];
         return new Promise<Array<string>>((resolve, reject) => {
-            lsStr.then((res) => {
-                files = res.split('\n');
-                return files;
-            });
-            lsStr.catch((err) => {
-                console.log('I get called:', err.message); // I get called: 'Something awful happened'
-                return files;
-            });
-        });
-        //return ["Hello", "World"];
-    }
+            //BJONES this appears to be unknown, how can I use ls from here?
+            //BJONES The problem is that this.ls = this.send('ls') which is
+            // an empty resolve.  Need to save the output of LS somehow.
+                console.log("Check");
+                lsFiles.then((res) => {
 
+                files = res.split('\n');
+                resolve( files );
+                });
+
+            // lsStr.catch((err) => {
+            //     console.log('I get called:', err.message); // I get called: 'Something awful happened'
+            //     return files;
+            // });
+        //});
+        //return ["Hello", "World"];
+    });
+}
+    //BJONES TODO MONDAY - This works in the sense of async.  But I get a number
+    // from read rather than a string. Why? And how can I read the lines of code
+    // Perhaps need to look at console to see how it prints the  stuff
     public count(): Promise<number> {
-        let ls = this.lsArray();
+        let fileArray: Array<string> = [];
         return new Promise<number>((resolve, reject) => {
-            ls.then((res) => {
-                res.length;
-            });
+        this.send('ls\n')
+            .then(() => this.read())
+            .then(async (res) => {
+                fileArray = res.split('\n');
+                // resolve(fileArray);
+            })
+            .then(() => resolve(fileArray.length));
+
         });
+        //let ls = this.lsArray();
+    //    let ws = this;
+        // return new Promise<number>((resolve, reject) => {
+        //     ls.then((res) => {
+        //         ws.read() (res) => {
+        //         res.length;
+        //         });
+        //     });
+        // });
     }
 
     private convIHex(source: string): string {
