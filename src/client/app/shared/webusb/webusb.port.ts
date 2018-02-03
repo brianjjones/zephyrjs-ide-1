@@ -23,6 +23,7 @@ export class WebUsbPort {
     }
 
     public onReceive(data: string) {
+        console.log("bjones PORT " + data);
         // tslint:disable-next-line:no-empty
     }
 
