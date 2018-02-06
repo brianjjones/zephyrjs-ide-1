@@ -154,9 +154,15 @@ export class WebUsbPort {
         return this.ashellReady;
     }
 
+    //BJONES TODO TUES
+    // I'm only getting some of the output, it seems console is grabbing the rest.
+    // Need to figure out how to signal to the console to not print out the incoming
+    // text from the device.
+    // Start by trying out Zoltan's latest Ashell code to see if there is some
+    // stuff there to deal with such things.
     public read(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.device.transferIn(3, 64).then((response: any) => {
+            this.device.transferIn(3, 645).then((response: any) => {
                 let decoded = this.decoder.decode(response.data);
                 resolve(decoded);
             });
@@ -299,14 +305,37 @@ export class WebUsbPort {
     // Perhaps need to look at console to see how it prints the  stuff
     public count(): Promise<number> {
         let fileArray: Array<string> = [];
+        let i = 0;
         return new Promise<number>((resolve, reject) => {
-        this.send('ls\n')
-            .then(() => this.read())
-            .then(async (res) => {
-                fileArray = res.split('\n');
-                // resolve(fileArray);
-            })
-            .then(() => resolve(fileArray.length));
+        //    this.send('echo off\n')
+            this.send('ls\n')
+                // .then(() => this.send('set transfer ihex\n'))
+                // .then(() => this.send('stop\n'))
+                //.then(() => this.send('ls\n'))
+                .then(async () => {
+        //    this.send('ls\n').then(async () => {
+            while(true) {
+                let result = await this.read();
+                fileArray[i] = result;//.split('\n');
+                console.log("BJONES fileArray " + i + " is " + fileArray[i] + " | " + result);
+                if (i > 500 || result === "ZJSLSDONE\n"){
+                    console.log("BJONES DONE!");
+                    break;
+                }
+                i++;
+            }
+
+
+        //    this.send('echo on\n')
+        });// );
+        // this.send('ls\n')
+        //     .then(() => this.read())
+        //     .then(async (res) => {
+        //         fileArray = res.split('\n'); //BJONES try without the split
+        //         console.log("BJONES first val = " + fileArray[0]);
+        //         // resolve(fileArray);
+        //     })
+        //     .then(() => resolve(fileArray.length));
 
         });
         //let ls = this.lsArray();
