@@ -16,7 +16,7 @@ export class WebUsbService {
 
     //BJONES TODO MONDAY
     // onRecieve returns the text after ls, figure out how to harvest it
-    
+
     public onReceive(data: string) {
         console.log("bjones SERVICE " + data);
         // tslint:disable-next-line:no-empty

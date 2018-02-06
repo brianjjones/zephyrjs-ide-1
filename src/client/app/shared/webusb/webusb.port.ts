@@ -158,6 +158,7 @@ export class WebUsbPort {
     // I'm only getting some of the output, it seems console is grabbing the rest.
     // Need to figure out how to signal to the console to not print out the incoming
     // text from the device.
+    // Look TO SEE IF I CAN NOT REGISTER CONSOLE FOR ANYTHING BUT ALARM
     // Start by trying out Zoltan's latest Ashell code to see if there is some
     // stuff there to deal with such things.
     public read(): Promise<string> {
@@ -314,18 +315,18 @@ export class WebUsbPort {
                 //.then(() => this.send('ls\n'))
                 .then(async () => {
         //    this.send('ls\n').then(async () => {
-            while(true) {
-                let result = await this.read();
-                fileArray[i] = result;//.split('\n');
-                console.log("BJONES fileArray " + i + " is " + fileArray[i] + " | " + result);
-                if (i > 500 || result === "ZJSLSDONE\n"){
-                    console.log("BJONES DONE!");
-                    break;
-                }
-                i++;
-            }
+            // while(true) {
+            //     let result = await this.read();
+            //     fileArray[i] = result;//.split('\n');
+            //     console.log("BJONES fileArray " + i + " is " + fileArray[i] + " | " + result);
+            //     if (i > 500 || result === "ZJSLSDONE\n"){
+            //         console.log("BJONES DONE!");
+            //         break;
+            //     }
+            //     i++;
+            // }
 
-
+            console.log("BJONES LS SENT");
         //    this.send('echo on\n')
         });// );
         // this.send('ls\n')
