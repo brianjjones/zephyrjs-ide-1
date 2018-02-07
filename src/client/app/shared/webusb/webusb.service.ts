@@ -9,6 +9,9 @@ import { SettingsService } from '../../pages/editor/settings.service';
 export class WebUsbService {
     public usb: any = null;
     public port: WebUsbPort = null;
+    private record = false;
+    private incomingData = []; // Array<string>;
+    private incomingCB: any = null;
 
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
@@ -18,7 +21,25 @@ export class WebUsbService {
     // onRecieve returns the text after ls, figure out how to harvest it
 
     public onReceive(data: string) {
-        console.log("bjones SERVICE " + data);
+
+        // We need to save this data for an async function
+        if (this.record) {
+            console.log("bjones SERVICE record! " + data);
+            this.incomingData.push(data);
+        }
+        else {
+            console.log("BJONES RECORD IS OFF!");
+        }
+
+        if (data === "[33macm> [39;0m") {
+            console.log("BJONES got closing item");
+            this.record = false;
+            if (this.incomingCB) {
+                this.incomingCB();
+                this.incomingCB = null;
+                this.incomingData = [];
+            }
+        }
         // tslint:disable-next-line:no-empty
     }
 
@@ -153,9 +174,26 @@ export class WebUsbService {
 
     public count() : Promise<number> {
         if (this.port) {
+            let webusbThis = this;
+
+            return( new Promise<number>((resolve, reject) =>{
+                webusbThis.port.send('ls\n')
+                .then(async () => {
+                    webusbThis.record = true;
+                    webusbThis.incomingCB = function () {
+                        console.log("BJONES callback called!");
+                        resolve(webusbThis.incomingData.length);
+                    }
+                    });
+                }));
+
+            // this.port.onReceive = (data: string) => {
+            //     this.onReceive(data);
+            // };
             //return 4;
-            return this.port.count();
-        } else {
+            //return this.port.count();
+        }
+        else {
         return new Promise((resolve, reject) => {
             setTimeout(function(){
                 resolve(55); // Yay! Everything went well!

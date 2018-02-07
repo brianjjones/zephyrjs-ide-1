@@ -16,6 +16,7 @@ export class WebUsbPort {
     previousRead: string;
     ashellReady: boolean;
 
+
     constructor(device: any) {
         this.device = device;
         this.decoder = new (window as any).TextDecoder();
@@ -337,7 +338,7 @@ export class WebUsbPort {
         //         // resolve(fileArray);
         //     })
         //     .then(() => resolve(fileArray.length));
-
+        resolve(5);
         });
         //let ls = this.lsArray();
     //    let ws = this;
