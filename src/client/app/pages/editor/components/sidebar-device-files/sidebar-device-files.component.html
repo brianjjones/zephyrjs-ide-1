@@ -2,14 +2,12 @@
     Device
 </div>
 
-<!-- <div *ngIf="fileCount | async; let fileCount; else loading"> -->
-<div *ngIf="fileCount; let fileCount; else loading">
-BJONES! = {{fileCount}};
+<ul *ngIf="fileCount; let fileCount; else loading">
     <li *ngFor="let filename of this.fileArray">
         <a href="#" class="filename" (click)="onDeviceFilenameClicked(filename)">
-            {{ filename }}
+            {{ filename.name }}
             <div class="size">
-                1234 bytes
+                {{filename.size}} bytes
             </div>
         </a>
 
@@ -17,9 +15,6 @@ BJONES! = {{fileCount}};
             <fa [name]="'trash'"></fa>
         </a>
     </li>
-</div>
-<!--
-<p *ngIf="webusbService.count() === 0" class="empty">
-    You have no saved files on this device!!!
-</p> -->
+</ul>
+
 <ng-template #loading>Loading files...</ng-template>

@@ -24,17 +24,15 @@ export class WebUsbService {
 
         // We need to save this data for an async function
         if (this.record) {
-            console.log("bjones SERVICE record! " + data);
+            //console.log("bjones SERVICE record! " + data);
             this.incomingData.push(data);
-        }
-        else {
-            console.log("BJONES RECORD IS OFF!");
         }
 
         if (data === "[33macm> [39;0m") {
-            console.log("BJONES got closing item");
+        //    console.log("BJONES got closing item");
             this.record = false;
             if (this.incomingCB) {
+                // Call the callback and then reset the data
                 this.incomingCB();
                 this.incomingCB = null;
                 this.incomingData = [];
@@ -204,6 +202,7 @@ export class WebUsbService {
                     webusbThis.record = true;
                     webusbThis.incomingCB = function () {
                         console.log("BJONES callback called!");
+
                         resolve(webusbThis.incomingData.length);
                     }
                     });

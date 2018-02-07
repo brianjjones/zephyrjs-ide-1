@@ -29,14 +29,24 @@ export class SidebarDeviceFilesComponent {
         let webusbThis = this;
         this.webusbService.lsArray()
         .then( function (arr) {
-            webusbThis.fileArray = arr;
+            //webusbThis.fileArray = arr;
+            let retArray = arr;
             for (var i = 0; i < arr.length; i++) {
-                webusbThis.fileArray[i] = webusbThis.fileArray[i].replace(/[^0-9a-z]/gi, '');
-                if (webusbThis.fileArray[i] === '') {
-                    webusbThis.fileArray.splice(i, 1);
+                retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
+                if (retArray[i] === '') {
+                    retArray.splice(i, 1);
                     i--;
                 }
             }
+
+            let itr = 0;
+            for (var i = 0; i < retArray.length; i+=2) {
+                if (!isNaN(retArray[i])) {
+                    webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
+                    itr++;
+                }
+            }
+
             webusbThis.fileCount = webusbThis.fileArray.length;
         });
 
