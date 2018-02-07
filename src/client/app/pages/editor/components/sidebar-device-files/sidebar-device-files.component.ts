@@ -18,15 +18,28 @@ export class SidebarDeviceFilesComponent {
     @Output()
     private onDeviceFileDeleted = new EventEmitter();
 
-    fileCount: {};// = this.getDeviceFilesCount();
+    fileCount : {};// = this.getDeviceFilesCount();
     //fileCount = 5;
-    fileArray: {};
+    fileArray = [];
     // subscription: Subscription;
     constructor(public webusbService: WebUsbService) { }
 
     ngOnInit() {
         console.log("BJONES in ngOnInit");
-        this.fileCount = this.webusbService.count();
+        let webusbThis = this;
+        this.webusbService.lsArray()
+        .then( function (arr) {
+            webusbThis.fileArray = arr;
+            for (var i = 0; i < arr.length; i++) {
+                webusbThis.fileArray[i] = webusbThis.fileArray[i].replace(/[^0-9a-z]/gi, '');
+                if (webusbThis.fileArray[i] === '') {
+                    webusbThis.fileArray.splice(i, 1);
+                    i--;
+                }
+            }
+            webusbThis.fileCount = webusbThis.fileArray.length;
+        });
+
         // this.webusbService.count().then((res) => {
         //     return res;
         // });

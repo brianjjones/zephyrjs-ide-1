@@ -154,14 +154,36 @@ export class WebUsbService {
     }
 
     public lsArray(): Promise<Array<string>> {
+
+        if (this.port) {
+            let webusbThis = this;
+
+            return( new Promise<Array<string>>((resolve, reject) =>{
+                webusbThis.port.send('ls\n')
+                .then(async () => {
+                    webusbThis.record = true;
+                    webusbThis.incomingCB = function () {
+                        console.log("BJONES callback called!");
+                        resolve(webusbThis.incomingData);
+                    }
+                    });
+                }));
+        }
+        else {
+        return new Promise((resolve, reject) => {
+            setTimeout(function(){
+                resolve([]); // Yay! Everything went well!
+            }, 250);
+        });}
+
         // if (this.port) {
         //     //console.log("Bjones HIT LSARRAY");
         //     //return ["THIS", "IS", "A", "TEST"];
         //     return this.port.lsArray();
         // }
-        return new Promise<Array<string>>((resolve, reject) => {
-            return ["test", "a", "is", "this"];
-        });
+        // return new Promise<Array<string>>((resolve, reject) => {
+        //     return ["test", "a", "is", "this"];
+        // });
     }
 
     public countSide() : number {
