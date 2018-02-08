@@ -157,35 +157,27 @@ export class WebUsbService {
         }));
     }
 
-    public lsTest(): Array<string> {
+    public lsTest(lsArray: Array<string>): Array<string> {
         return ["THIS", "IS", "A", "TEST"];
     }
 
-    public lsArray(): Promise<Array<string>> {
+    public lsArray(lsArray: Array<string>): Promise<Array<string>> {
 
         if (this.port) {
             let webusbThis = this;
-
+            webusbThis.record = true;
             return( new Promise<Array<string>>((resolve, reject) =>{
-                webusbThis.port.send('ls\n')
-                .then(async () => {
-                    //BJONES TODO THURS
-                    //sendAndWait doesn't work in this case. Why? async?
-                    // I would gets for some reason getFileInfo is not done
-                    //before webusbThis.incomingData is sent?
-                    webusbThis.record = true;
-                    webusbThis.incomingCB = function () {
-                        console.log("BJONES callback called! = " + webusbThis.incomingData.length);
-                        resolve(webusbThis.incomingData);
-                    }
-                    });
-                }));
+                webusbThis.sendAndWait('ls\n', function () {
+                    console.log("BJONES callback called! = " + webusbThis.incomingData.length);
+                    lsArray = webusbThis.incomingData;
+                    resolve(lsArray);
+                });
+            }));
         }
         else {
         return new Promise((resolve, reject) => {
                 console.log("BJONES lsArray FAILED");
                 resolve([]); // Yay! Everything went well!
-
         });}
 
         // if (this.port) {
