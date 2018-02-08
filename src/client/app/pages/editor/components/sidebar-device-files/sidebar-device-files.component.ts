@@ -41,7 +41,7 @@ export class SidebarDeviceFilesComponent {
 
             let itr = 0;
             for (var i = 0; i < retArray.length; i+=2) {
-                if (!isNaN(retArray[i])) {
+                if (!isNaN(retArray[i] as any)) {
                     webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
                     itr++;
                 }

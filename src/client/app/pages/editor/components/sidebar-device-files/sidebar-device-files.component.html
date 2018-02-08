@@ -4,14 +4,14 @@
 
 <ul *ngIf="fileCount; let fileCount; else loading">
     <li *ngFor="let filename of this.fileArray">
-        <a href="#" class="filename" (click)="onDeviceFilenameClicked(filename)">
+        <a href="#" class="filename" (click)="onDeviceFilenameClicked(filename.name)">
             {{ filename.name }}
             <div class="size">
                 {{filename.size}} bytes
             </div>
         </a>
 
-        <a href="#" class="delete" (click)="onDeleteDeviceFileClicked(filename)">
+        <a href="#" class="delete" (click)="onDeleteDeviceFileClicked(filename.name)">
             <fa [name]="'trash'"></fa>
         </a>
     </li>
