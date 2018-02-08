@@ -273,7 +273,14 @@ export class WebUsbPort {
     }
 
     public rm(data: string): Promise<string> {
-        return this.send('rm ' + data + '\n');
+
+        return new Promise<string>((resolve, reject) => {
+            this.send('rm ' + data + '\n')
+            .then(async () => {
+                console.log("BJONES RM IS DONE");
+                resolve("done");
+            });
+        });
     }
 
     public lsArray(): Promise<Array<string>> {

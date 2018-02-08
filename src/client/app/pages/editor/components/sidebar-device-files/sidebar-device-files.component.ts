@@ -26,6 +26,38 @@ export class SidebarDeviceFilesComponent {
 
     ngOnInit() {
         console.log("BJONES in ngOnInit");
+        this.getFileInfo();
+        // let webusbThis = this;
+        // this.webusbService.lsArray()
+        // .then( function (arr) {
+        //     //webusbThis.fileArray = arr;
+        //     let retArray = arr;
+        //     for (var i = 0; i < arr.length; i++) {
+        //         retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
+        //         if (retArray[i] === '') {
+        //             retArray.splice(i, 1);
+        //             i--;
+        //         }
+        //     }
+        //
+        //     let itr = 0;
+        //     for (var i = 0; i < retArray.length; i+=2) {
+        //         if (!isNaN(retArray[i] as any)) {
+        //             webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
+        //             itr++;
+        //         }
+        //     }
+        //
+        //     webusbThis.fileCount = webusbThis.fileArray.length;
+        // });
+
+        // this.webusbService.count().then((res) => {
+        //     return res;
+        // });
+      }
+    private getFileInfo() {
+        this.fileArray = [];
+        this.fileCount = 0;
         let webusbThis = this;
         this.webusbService.lsArray()
         .then( function (arr) {
@@ -49,11 +81,7 @@ export class SidebarDeviceFilesComponent {
 
             webusbThis.fileCount = webusbThis.fileArray.length;
         });
-
-        // this.webusbService.count().then((res) => {
-        //     return res;
-        // });
-      }
+    }
 
     public getDeviceFilesCount(){
         console.log("BJONES in getDeviceFilesCount");
@@ -81,8 +109,19 @@ export class SidebarDeviceFilesComponent {
 
     // tslint:disable-next-line:no-unused-locals
     public onDeleteDeviceFileClicked(filename: string) {
-        this.webusbService.rm(filename);
-        this.onDeviceFileDeleted.emit(filename);
+        let that = this;
+        this.webusbService.rm(filename)
+        .then(async (res) => {
+            console.log("Bjones rm returned " + res);
+            that.onDeviceFileDeleted.emit(filename);
+            that.getFileInfo();
+        //     setTimeout(function() {
+        //     that.getFileInfo();
+        // },2000);
+        });
+
+        // if(this.fileCount < 10)
+        //     this.getFileInfo();
         return false;
     }
 }

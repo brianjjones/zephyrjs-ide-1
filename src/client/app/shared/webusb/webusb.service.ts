@@ -29,14 +29,15 @@ export class WebUsbService {
         }
 
         if (data === "[33macm> [39;0m") {
-        //    console.log("BJONES got closing item");
+
             this.record = false;
+            console.log("BJONES got closing item - record == " + this.record);
             if (this.incomingCB) {
                 // Call the callback and then reset the data
                 this.incomingCB();
                 this.incomingCB = null;
-                this.incomingData = [];
             }
+            this.incomingData = [];
         }
         // tslint:disable-next-line:no-empty
     }
@@ -144,7 +145,17 @@ export class WebUsbService {
     }
 
     public rm(data: string) : Promise<string> {
-        return this.port.rm(data);
+        let webusbThis = this;
+        return (new Promise<string>((resolve, reject) => {
+            //BJONES is there a more universal way I could do this?
+            // Basically send happens fast, but I need to wait until
+            // I get the data back to fulfill the promise.           
+            webusbThis.incomingCB = function() {
+                resolve("done!");
+            }
+            this.send('rm ' + data + '\n');
+        }));
+        //return this.port.rm(data);
     }
 
     public lsTest(): Array<string> {
@@ -161,7 +172,7 @@ export class WebUsbService {
                 .then(async () => {
                     webusbThis.record = true;
                     webusbThis.incomingCB = function () {
-                        console.log("BJONES callback called!");
+                        console.log("BJONES callback called! = " + webusbThis.incomingData.length);
                         resolve(webusbThis.incomingData);
                     }
                     });
@@ -169,9 +180,9 @@ export class WebUsbService {
         }
         else {
         return new Promise((resolve, reject) => {
-            setTimeout(function(){
+                console.log("BJONES lsArray FAILED");
                 resolve([]); // Yay! Everything went well!
-            }, 250);
+
         });}
 
         // if (this.port) {
@@ -202,7 +213,6 @@ export class WebUsbService {
                     webusbThis.record = true;
                     webusbThis.incomingCB = function () {
                         console.log("BJONES callback called!");
-
                         resolve(webusbThis.incomingData.length);
                     }
                     });
