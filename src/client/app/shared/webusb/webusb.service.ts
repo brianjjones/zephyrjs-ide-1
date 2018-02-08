@@ -143,19 +143,18 @@ export class WebUsbService {
     public load(data: string) : Promise<string> {
         return this.port.load(data);
     }
-
+    // Send a command 'data' and resolve using 'cb' once the device replies
+    public sendAndWait(data: string, cb: any) {
+        this.incomingCB = cb;
+        this.send(data);
+    }
     public rm(data: string) : Promise<string> {
         let webusbThis = this;
         return (new Promise<string>((resolve, reject) => {
-            //BJONES is there a more universal way I could do this?
-            // Basically send happens fast, but I need to wait until
-            // I get the data back to fulfill the promise.           
-            webusbThis.incomingCB = function() {
-                resolve("done!");
-            }
-            this.send('rm ' + data + '\n');
+            webusbThis.sendAndWait('rm ' + data + '\n', function(){
+                resolve("rm " + data + " done");
+            });
         }));
-        //return this.port.rm(data);
     }
 
     public lsTest(): Array<string> {
@@ -170,6 +169,10 @@ export class WebUsbService {
             return( new Promise<Array<string>>((resolve, reject) =>{
                 webusbThis.port.send('ls\n')
                 .then(async () => {
+                    //BJONES TODO THURS
+                    //sendAndWait doesn't work in this case. Why? async?
+                    // I would gets for some reason getFileInfo is not done
+                    //before webusbThis.incomingData is sent?
                     webusbThis.record = true;
                     webusbThis.incomingCB = function () {
                         console.log("BJONES callback called! = " + webusbThis.incomingData.length);
