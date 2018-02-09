@@ -45,9 +45,7 @@ export class FileService {
     }
 
     public count(): number {
-
-        return 10;
-        //    return this.ls().length;
+        return this.ls().length;
     }
 
     public delete(filename: string) {

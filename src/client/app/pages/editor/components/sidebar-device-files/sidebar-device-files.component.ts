@@ -87,4 +87,8 @@ export class SidebarDeviceFilesComponent {
         });
         return false;
     }
+
+    public getFileCount() {
+        return this.fileCount;
+    }
 }

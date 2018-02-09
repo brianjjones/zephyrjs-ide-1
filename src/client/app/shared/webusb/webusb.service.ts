@@ -16,29 +16,25 @@ export class WebUsbService {
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
     }
-
+    // Handle incoming data from the device
     public onReceive(data: string) {
-
-        // We need to save this data for an async function
-
+        // If this is the closing message, call any callbacks
         if (data === "[33macm> [39;0m") {
-
             this.record = false;
+            // Call the callback and reset data
             if (this.incomingCB) {
-                // Call the callback and then reset the data
                 this.incomingCB();
-                this.incomingCB = null;
             }
+            this.incomingCB = null;
             this.incomingData = [];
         }
         else if (this.record) {
             this.incomingData.push(data);
         }
-        // tslint:disable-next-line:no-empty
     }
 
     public onReceiveError(error: DOMException) {
-        // tslint:disable-next-line:no-empty
+            // tslint:disable-next-line:no-empty
     }
 
     public requestPort(): Promise<WebUsbPort> {
@@ -142,18 +138,20 @@ export class WebUsbService {
         webusbThis.record = true;
         return( new Promise<string>((resolve, reject) =>{
             webusbThis.sendAndWait('cat ' + data + '\n', function () {
-                webusbThis.incomingData.splice(0, 2);    // Remove the command
-                //webusbThis.incomingData.pop();  //Remove the ending char
+                // Remove the command line from the array
+                webusbThis.incomingData.splice(0, 2);
                 loadStr = webusbThis.incomingData.join('');
                 resolve(loadStr);
             });
         }));
     }
+
     // Send a command 'data' and resolve using 'cb' once the device replies
     public sendAndWait(data: string, cb: any) {
         this.incomingCB = cb;
         this.send(data);
     }
+
     public rm(data: string) : Promise<string> {
         let webusbThis = this;
         return (new Promise<string>((resolve, reject) => {
