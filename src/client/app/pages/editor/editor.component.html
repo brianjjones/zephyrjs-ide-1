@@ -65,7 +65,7 @@
                     <fa [name]="'folder'"></fa>
                     <span *ngIf="sidebarOptions.opened">
                         Device
-                        <span class="count">({{ deviceFiles.fileCount }})</span>
+                        <span class="count">({{ fileService.deviceFileCount() }})</span>
                     </span>
                 </a>
             </li>

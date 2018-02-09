@@ -12,7 +12,8 @@ export class WebUsbService {
     private record = false;
     private incomingData = []; // Array<string>;
     private incomingCB: any = null;
-
+    public fileCount : number = 0;
+    fileArray = [];
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
     }
@@ -68,6 +69,7 @@ export class WebUsbService {
                 this.port.onReceiveError = (error: DOMException) => {
                     this.onReceiveError(error);
                 };
+                this.lsArray();
             });
         };
 
@@ -165,14 +167,33 @@ export class WebUsbService {
         return ["THIS", "IS", "A", "TEST"];
     }
 
-    public lsArray(lsArray: Array<string>): Promise<Array<string>> {
+    public lsArray(): Promise<Array<string>> {
         if (this.port) {
+            let retArray = [];
             let webusbThis = this;
             webusbThis.record = true;
+            webusbThis.fileArray = [];
             return( new Promise<Array<string>>((resolve, reject) =>{
                 webusbThis.sendAndWait('ls\n', function () {
-                    lsArray = webusbThis.incomingData;
-                    resolve(lsArray);
+                    let retArray = webusbThis.incomingData;
+                    for (var i = 0; i < webusbThis.incomingData.length; i++) {
+                        retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
+                        if (retArray[i] === '') {
+                            retArray.splice(i, 1);
+                            i--;
+                        }
+                    }
+                    let itr = 0;
+                    for (var i = 0; i < retArray.length; i++) {
+                        if (!isNaN(retArray[i] as any)) {
+                            webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
+                            itr++;
+                            i++;
+                        }
+                    }
+                    retArray = webusbThis.fileArray;
+                    webusbThis.fileCount = retArray.length;
+                    resolve(retArray);
                 });
             }));
         }
@@ -195,9 +216,9 @@ export class WebUsbService {
             let webusbThis = this;
             let localArr = [];
             return( new Promise<number>((resolve, reject) =>{
-                this.lsArray(localArr)
+                this.lsArray()
                 .then(async (res) => {
-                    resolve(localArr.length);
+                    resolve(res.length);
                     });
                 }));
 

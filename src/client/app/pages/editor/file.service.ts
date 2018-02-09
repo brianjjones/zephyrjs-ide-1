@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 
 import { LocalStorageService } from 'angular-2-local-storage';
-
+import { WebUsbService } from '../../shared/webusb/webusb.service';
 
 @Injectable()
 export class FileService {
     // E.g. 'zephyrjs-ide.FILES.foo'
     readonly PREFIX: string = 'FILES.';
+    fileCount : number = 0;
+    fileArray = [];
 
-    public constructor(private _localStorageService: LocalStorageService) {
+    public constructor(private _localStorageService: LocalStorageService,
+            public webusbService: WebUsbService) {
     }
+
 
     public exists(filename: string): boolean {
         return this.load(filename) !== null;
@@ -50,5 +54,38 @@ export class FileService {
 
     public delete(filename: string) {
         return this._localStorageService.remove(this.PREFIX + filename);
+    }
+
+    // Device API for interacting with a device over usb
+    public deviceFileCount(): number {
+        //this.getFileInfo(); BJONES DON'T CALL THIS HERE. It keeps getting called constantly
+        this.fileCount = this.webusbService.fileCount;
+        return this.fileCount;
+    }
+
+    public getFileInfo() {
+        this.fileArray = [];
+        this.fileCount = 0;
+        let deviceThis = this;
+        this.webusbService.lsArray()
+        .then( function (arr) {
+            let retArray = arr;
+            for (var i = 0; i < arr.length; i++) {
+                retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
+                if (retArray[i] === '') {
+                    retArray.splice(i, 1);
+                    i--;
+                }
+            }
+            let itr = 0;
+            for (var i = 0; i < retArray.length; i++) {
+                if (!isNaN(retArray[i] as any)) {
+                    deviceThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
+                    itr++;
+                    i++;
+                }
+            }
+            deviceThis.fileCount = deviceThis.fileArray.length;
+        });
     }
 }
