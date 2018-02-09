@@ -1,15 +1,11 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-// import { Subscription } from 'rxjs/Subscription';
 import { WebUsbService } from '../../../../shared/webusb/webusb.service';
-//import { WebUsbPort } from '../../../../shared/webusb/webusb.port';
-
 
 @Component({
     moduleId: module.id,
     selector: 'sd-sidebar-device-files',
     templateUrl: 'sidebar-device-files.component.html',
     styleUrls: ['sidebar-device-files.component.css']
-    //providers: [WebUsbService]
 })
 export class SidebarDeviceFilesComponent {
     @Output()
@@ -18,14 +14,12 @@ export class SidebarDeviceFilesComponent {
     @Output()
     private onDeviceFileDeleted = new EventEmitter();
 
-    fileCount : {};// = this.getDeviceFilesCount();
-    //fileCount = 5;
+    fileCount : number = 0;
     fileArray = [];
     // subscription: Subscription;
     constructor(public webusbService: WebUsbService) { }
 
     ngOnInit() {
-        console.log("BJONES in ngOnInit");
         this.getFileInfo();
     }
 
@@ -35,7 +29,6 @@ export class SidebarDeviceFilesComponent {
         let deviceThis = this;
         this.webusbService.lsArray(this.fileArray)
         .then( function (arr) {
-            //deviceThis.fileArray = arr;
             let retArray = arr;
             for (var i = 0; i < arr.length; i++) {
                 retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
@@ -44,7 +37,6 @@ export class SidebarDeviceFilesComponent {
                     i--;
                 }
             }
-
             let itr = 0;
             for (var i = 0; i < retArray.length; i++) {
                 if (!isNaN(retArray[i] as any)) {
@@ -58,7 +50,6 @@ export class SidebarDeviceFilesComponent {
     }
 
     public getDeviceFilesCount(){
-        console.log("BJONES in getDeviceFilesCount");
         this.webusbService.count().then((res) => {
             return res;
         });
@@ -66,10 +57,8 @@ export class SidebarDeviceFilesComponent {
 
     // tslint:disable-next-line:no-unused-locals
     public onDeviceFilenameClicked(filename: string) {
-        console.log("BJONES " + filename + " was CLICKED");
         this.webusbService.load(filename)
         .then(async (res) => {
-            console.log("BJONES load file done about to emit");
         this.onFileSelected.emit({
             filename: filename,
             contents: res
@@ -82,16 +71,9 @@ export class SidebarDeviceFilesComponent {
         let that = this;
         this.webusbService.rm(filename)
         .then(async (res) => {
-            console.log("Bjones rm returned " + res);
             that.onDeviceFileDeleted.emit(filename);
             that.getFileInfo();
-        //     setTimeout(function() {
-        //     that.getFileInfo();
-        // },2000);
         });
-
-        // if(this.fileCount < 10)
-        //     this.getFileInfo();
         return false;
     }
 
@@ -100,16 +82,9 @@ export class SidebarDeviceFilesComponent {
         let that = this;
         this.webusbService.rm(filename)
         .then(async (res) => {
-            console.log("Bjones rm returned " + res);
             that.onDeviceFileDeleted.emit(filename);
             that.getFileInfo();
-        //     setTimeout(function() {
-        //     that.getFileInfo();
-        // },2000);
         });
-
-        // if(this.fileCount < 10)
-        //     this.getFileInfo();
         return false;
     }
 }

@@ -4,7 +4,6 @@
 
 <ul *ngIf="fileCount; let fileCount; else loading">
     <li *ngFor="let filename of fileArray">
-    <!-- <li ng-repeat="filename in fileArray"> -->
         <a href="#" class="filename" (click)="onDeviceFilenameClicked(filename.name)">
             {{ filename.name }}
             <div class="size">

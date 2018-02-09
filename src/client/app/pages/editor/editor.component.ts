@@ -159,7 +159,6 @@ export class EditorComponent {
             this.secondarySidebarOptions.content === 'device') {
             this.onCloseSecondarySidebar();
         } else {
-            //this.deviceFiles.getDeviceFiles();
             this.secondarySidebarOptions.content = 'device';
             this.secondarySidebarOptions.opened = true;
             this._adjustBackdropPosition();

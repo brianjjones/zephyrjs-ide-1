@@ -17,9 +17,6 @@ export class WebUsbService {
         this.usb = (navigator as any).usb;
     }
 
-    //BJONES TODO MONDAY
-    // onRecieve returns the text after ls, figure out how to harvest it
-
     public onReceive(data: string) {
 
         // We need to save this data for an async function
@@ -27,7 +24,6 @@ export class WebUsbService {
         if (data === "[33macm> [39;0m") {
 
             this.record = false;
-            console.log("BJONES got closing item - record == " + this.record);
             if (this.incomingCB) {
                 // Call the callback and then reset the data
                 this.incomingCB();
@@ -36,7 +32,6 @@ export class WebUsbService {
             this.incomingData = [];
         }
         else if (this.record) {
-            //console.log("bjones SERVICE record! " + data);
             this.incomingData.push(data);
         }
         // tslint:disable-next-line:no-empty
@@ -147,7 +142,6 @@ export class WebUsbService {
         webusbThis.record = true;
         return( new Promise<string>((resolve, reject) =>{
             webusbThis.sendAndWait('cat ' + data + '\n', function () {
-                console.log("BJONES callback called! = " + webusbThis.incomingData.length);
                 webusbThis.incomingData.splice(0, 2);    // Remove the command
                 //webusbThis.incomingData.pop();  //Remove the ending char
                 loadStr = webusbThis.incomingData.join('');
@@ -174,13 +168,11 @@ export class WebUsbService {
     }
 
     public lsArray(lsArray: Array<string>): Promise<Array<string>> {
-
         if (this.port) {
             let webusbThis = this;
             webusbThis.record = true;
             return( new Promise<Array<string>>((resolve, reject) =>{
                 webusbThis.sendAndWait('ls\n', function () {
-                    console.log("BJONES callback called! = " + webusbThis.incomingData.length);
                     lsArray = webusbThis.incomingData;
                     resolve(lsArray);
                 });
@@ -188,18 +180,8 @@ export class WebUsbService {
         }
         else {
         return new Promise((resolve, reject) => {
-                console.log("BJONES lsArray FAILED");
-                resolve([]); // Yay! Everything went well!
+                resolve([]);
         });}
-
-        // if (this.port) {
-        //     //console.log("Bjones HIT LSARRAY");
-        //     //return ["THIS", "IS", "A", "TEST"];
-        //     return this.port.lsArray();
-        // }
-        // return new Promise<Array<string>>((resolve, reject) => {
-        //     return ["test", "a", "is", "this"];
-        // });
     }
 
     public countSide() : number {
@@ -213,15 +195,11 @@ export class WebUsbService {
     public count() : Promise<number> {
         if (this.port) {
             let webusbThis = this;
-
+            let localArr = [];
             return( new Promise<number>((resolve, reject) =>{
-                webusbThis.port.send('ls\n')
-                .then(async () => {
-                    webusbThis.record = true;
-                    webusbThis.incomingCB = function () {
-                        console.log("BJONES callback called!");
-                        resolve(webusbThis.incomingData.length);
-                    }
+                this.lsArray(localArr)
+                .then(async (res) => {
+                    resolve(localArr.length);
                     });
                 }));
 
