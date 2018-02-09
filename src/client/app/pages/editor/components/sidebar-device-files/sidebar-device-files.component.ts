@@ -13,7 +13,7 @@ import { WebUsbService } from '../../../../shared/webusb/webusb.service';
 })
 export class SidebarDeviceFilesComponent {
     @Output()
-    private onDeviceFile = new EventEmitter();
+    private onFileSelected = new EventEmitter();
 
     @Output()
     private onDeviceFileDeleted = new EventEmitter();
@@ -66,22 +66,19 @@ export class SidebarDeviceFilesComponent {
 
     // tslint:disable-next-line:no-unused-locals
     public onDeviceFilenameClicked(filename: string) {
-        this.onDeviceFile.emit({
+        console.log("BJONES " + filename + " was CLICKED");
+        this.webusbService.load(filename)
+        .then(async (res) => {
+            console.log("BJONES load file done about to emit");
+        this.onFileSelected.emit({
             filename: filename,
-            contents: this.webusbService.load(filename)
+            contents: res
         });
+    });
         return false;
     }
 
-    // tslint:disable-next-line:no-unused-locals
-    public computeDeviceFileSize(filename: string) {
-        //let contents = this.webusbService.load(filename);
-    //    let m = encodeURIComponent(contents).match(/%[89ABab]/g);
-    //    return contents.length + (m ? m.length : 0);
-        return 100;
-    }
-
-    public oRenameDeviceFileClicked(filename: string) {
+    public onRenameDeviceFileClicked(filename: string) {
         let that = this;
         this.webusbService.rm(filename)
         .then(async (res) => {

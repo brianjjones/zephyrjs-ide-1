@@ -120,6 +120,7 @@
 
             <sd-sidebar-device-files
                 *ngIf="secondarySidebarOptions.content === 'device'"
+                (onFileSelected)="onDeviceFileSelected($event)"
                 class="device">
             </sd-sidebar-device-files>
         </ng-sidebar>

@@ -260,6 +260,36 @@ export class EditorComponent {
         this.onCloseSecondarySidebar();
     }
 
+    public onDeviceFileSelected(file: any) {
+        // Switch to it if we already have it open
+        for(let tab of this.tabs) {
+            if (tab.title === file.filename) {
+                this.appDataService.activateEditorTab(tab);
+                this.onCloseSecondarySidebar();
+                return;
+            }
+        }
+
+        // Otherwise we create a new tab
+
+        function _setContents(tab: EditorTab, contents: string) {
+            // Wait for editor to become available
+            setTimeout(() => {
+                if (tab.editor !== null) {
+                    tab.editor.setValue(contents);
+                } else {
+                    _setContents(tab, contents);
+                }
+            }, 100);
+        }
+
+        let newTab = this.appDataService.newEditorTab();
+        newTab.title = file.filename;
+        _setContents(newTab, file.contents);
+
+        this.onCloseSecondarySidebar();
+    }
+
     // tslint:disable-next-line:no-unused-locals
     public onCloseConsole() {
         this.consoleToggledOff = true;

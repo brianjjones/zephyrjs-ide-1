@@ -23,10 +23,6 @@ export class WebUsbService {
     public onReceive(data: string) {
 
         // We need to save this data for an async function
-        if (this.record) {
-            //console.log("bjones SERVICE record! " + data);
-            this.incomingData.push(data);
-        }
 
         if (data === "[33macm> [39;0m") {
 
@@ -38,6 +34,10 @@ export class WebUsbService {
                 this.incomingCB = null;
             }
             this.incomingData = [];
+        }
+        else if (this.record) {
+            //console.log("bjones SERVICE record! " + data);
+            this.incomingData.push(data);
         }
         // tslint:disable-next-line:no-empty
     }
@@ -141,7 +141,19 @@ export class WebUsbService {
     }
 
     public load(data: string) : Promise<string> {
-        return this.port.load(data);
+        let webusbThis = this;
+        let loadStr = "";
+        //return this.send('cat ' + data + '\n');
+        webusbThis.record = true;
+        return( new Promise<string>((resolve, reject) =>{
+            webusbThis.sendAndWait('cat ' + data + '\n', function () {
+                console.log("BJONES callback called! = " + webusbThis.incomingData.length);
+                webusbThis.incomingData.splice(0, 2);    // Remove the command
+                //webusbThis.incomingData.pop();  //Remove the ending char
+                loadStr = webusbThis.incomingData.join('');
+                resolve(loadStr);
+            });
+        }));
     }
     // Send a command 'data' and resolve using 'cb' once the device replies
     public sendAndWait(data: string, cb: any) {
