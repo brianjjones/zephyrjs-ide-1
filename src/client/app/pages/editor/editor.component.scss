@@ -147,7 +147,7 @@
                 }
             }
 
-            .files{
+            .files, .device {
                 a.filename {
                     width: calc(100% - 38px);
                     display: inline-block;
@@ -155,56 +155,6 @@
                     .size {
                         color: #999;
                         font-size: 13px;
-                    }
-                }
-
-                a.delete {
-                    width: auto;
-                    padding: 19px 9px;
-                    display: inline-block;
-                    float: right;
-                    text-align: center;
-
-                    fa {
-                        color: #ccc;
-                    }
-
-                    &:hover fa {
-                        color: $error-color;
-                    }
-                }
-
-                .empty {
-                    padding: 20px;
-                    font-size: 18px;
-                    color: #aaa;
-                    text-align: centeR;
-                }
-            }
-
-            .device {
-                a.filename {
-                    width: calc(100% - 80px);
-                    display: inline-block;
-
-                    .size {
-                        color: #999;
-                        font-size: 13px;
-                    }
-                }
-                a.rename {
-                    width: auto;
-                    padding: 19px 9px;
-                    display: inline-block;
-                    float: right;
-                    text-align: center;
-
-                    fa {
-                        color: #ccc;
-                    }
-
-                    &:hover fa {
-                        color: $error-color;
                     }
                 }
 
