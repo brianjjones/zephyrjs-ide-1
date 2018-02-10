@@ -203,39 +203,6 @@ export class WebUsbService {
         });}
     }
 
-    public countSide() : number {
-        if (this.port) {
-            return 14;
-            //return this.port.count();
-        }
-        return 0;
-    }
-
-    public count() : Promise<number> {
-        if (this.port) {
-            let webusbThis = this;
-            let localArr = [];
-            return( new Promise<number>((resolve, reject) =>{
-                this.lsArray()
-                .then(async (res) => {
-                    resolve(res.length);
-                    });
-                }));
-
-            // this.port.onReceive = (data: string) => {
-            //     this.onReceive(data);
-            // };
-            //return 4;
-            //return this.port.count();
-        }
-        else {
-        return new Promise((resolve, reject) => {
-            setTimeout(function(){
-                resolve(55); // Yay! Everything went well!
-            }, 250);
-        });}
-    }
-
     public save(filename: string, data: string): Promise<string> {
         if (this.port === null) {
             return new Promise<string>((resolve, reject) => {
@@ -245,5 +212,9 @@ export class WebUsbService {
 
         let throttle = this.settingsService.getDeviceThrottle();
         return this.port.save(filename, data, throttle);
+    }
+
+    public deviceFileCount(): number {
+        return this.fileCount;
     }
 }

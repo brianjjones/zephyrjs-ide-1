@@ -24,35 +24,11 @@ export class SidebarDeviceFilesComponent {
     }
 
     private getFileInfo() {
-        this.fileArray = [];
-        this.fileCount = 0;
         let deviceThis = this;
         this.webusbService.lsArray()
         .then( function (arr) {
-            // let retArray = arr;
-            // for (var i = 0; i < arr.length; i++) {
-            //     retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
-            //     if (retArray[i] === '') {
-            //         retArray.splice(i, 1);
-            //         i--;
-            //     }
-            // }
-            // let itr = 0;
-            // for (var i = 0; i < retArray.length; i++) {
-            //     if (!isNaN(retArray[i] as any)) {
-            //         deviceThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
-            //         itr++;
-            //         i++;
-            //     }
-            // }
             deviceThis.fileArray = arr;
             deviceThis.fileCount = deviceThis.fileArray.length;
-        });
-    }
-
-    public getDeviceFilesCount(){
-        this.webusbService.count().then((res) => {
-            return res;
         });
     }
 
@@ -68,16 +44,6 @@ export class SidebarDeviceFilesComponent {
         return false;
     }
 
-    public onRenameDeviceFileClicked(filename: string) {
-        let that = this;
-        this.webusbService.rm(filename)
-        .then(async (res) => {
-            that.onDeviceFileDeleted.emit(filename);
-            that.getFileInfo();
-        });
-        return false;
-    }
-
     // tslint:disable-next-line:no-unused-locals
     public onDeleteDeviceFileClicked(filename: string) {
         let that = this;
@@ -87,9 +53,5 @@ export class SidebarDeviceFilesComponent {
             that.getFileInfo();
         });
         return false;
-    }
-
-    public getFileCount() {
-        return this.fileCount;
     }
 }
