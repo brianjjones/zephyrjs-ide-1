@@ -136,10 +136,9 @@ export class WebUsbService {
     public load(data: string) : Promise<string> {
         let webusbThis = this;
         let loadStr = "";
-        //return this.send('cat ' + data + '\n');
         webusbThis.record = true;
         return( new Promise<string>((resolve, reject) =>{
-            webusbThis.sendAndWait('cat ' + data + '\n', function () {
+            webusbThis.sendWithCB('cat ' + data + '\n', function () {
                 // Remove the command line from the array
                 webusbThis.incomingData.splice(0, 2);
                 loadStr = webusbThis.incomingData.join('');
@@ -149,7 +148,7 @@ export class WebUsbService {
     }
 
     // Send a command 'data' and resolve using 'cb' once the device replies
-    public sendAndWait(data: string, cb: any) {
+    public sendWithCB(data: string, cb: any) {
         this.incomingCB = cb;
         this.send(data);
     }
@@ -157,14 +156,10 @@ export class WebUsbService {
     public rm(data: string) : Promise<string> {
         let webusbThis = this;
         return (new Promise<string>((resolve, reject) => {
-            webusbThis.sendAndWait('rm ' + data + '\n', function(){
+            webusbThis.sendWithCB('rm ' + data + '\n', function(){
                 resolve("rm " + data + " done");
             });
         }));
-    }
-
-    public lsTest(lsArray: Array<string>): Array<string> {
-        return ["THIS", "IS", "A", "TEST"];
     }
 
     public lsArray(): Promise<Array<string>> {
@@ -174,7 +169,7 @@ export class WebUsbService {
             webusbThis.record = true;
             webusbThis.fileArray = [];
             return( new Promise<Array<string>>((resolve, reject) =>{
-                webusbThis.sendAndWait('ls\n', function () {
+                webusbThis.sendWithCB('ls\n', function () {
                     let retArray = webusbThis.incomingData;
                     for (var i = 0; i < webusbThis.incomingData.length; i++) {
                         retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');

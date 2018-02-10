@@ -16,7 +16,6 @@ export class WebUsbPort {
     previousRead: string;
     ashellReady: boolean;
 
-
     constructor(device: any) {
         this.device = device;
         this.decoder = new (window as any).TextDecoder();
@@ -156,7 +155,7 @@ export class WebUsbPort {
 
     public read(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.device.transferIn(3, 645).then((response: any) => {
+            this.device.transferIn(3, 64).then((response: any) => {
                 let decoded = this.decoder.decode(response.data);
                 resolve(decoded);
             });
@@ -170,7 +169,7 @@ export class WebUsbPort {
             }
 
             this.device.transferOut(2, this.encoder.encode(data))
-            .then((res) => { resolve(res); })
+            .then(() => { resolve(); })
             .catch((error: string) => { reject(error); });
         });
     }
@@ -254,86 +253,6 @@ export class WebUsbPort {
 
     public stop(): Promise<string> {
         return this.send('stop\n');
-    }
-
-    public ls(): Promise<string> {
-        return this.send('ls\n');
-    }
-
-    public load(data: string): Promise<string> {
-        return this.send('cat ' + data + '\n');
-    }
-
-    public rm(data: string): Promise<string> {
-
-        return new Promise<string>((resolve, reject) => {
-            this.send('rm ' + data + '\n')
-            .then(async () => {
-                resolve("done");
-            });
-        });
-    }
-
-    public lsArray(): Promise<Array<string>> {
-        //let prefixLength = this.PREFIX.length;
-        let lsFiles = this.ls();
-        let lsRead = this.read();
-        let files: Array<string> = [];
-        return new Promise<Array<string>>((resolve, reject) => {
-                console.log("Check");
-                lsFiles.then((res) => {
-
-                files = res.split('\n');
-                resolve( files );
-                });
-
-            // lsStr.catch((err) => {
-            //     console.log('I get called:', err.message); // I get called: 'Something awful happened'
-            //     return files;
-            // });
-        //});
-        //return ["Hello", "World"];
-    });
-}
-    public count(): Promise<number> {
-        let fileArray: Array<string> = [];
-        let i = 0;
-        return new Promise<number>((resolve, reject) => {
-        //    this.send('echo off\n')
-            this.send('ls\n')
-                // .then(() => this.send('set transfer ihex\n'))
-                // .then(() => this.send('stop\n'))
-                //.then(() => this.send('ls\n'))
-                .then(async () => {
-        //    this.send('ls\n').then(async () => {
-            // while(true) {
-            //     let result = await this.read();
-            //     fileArray[i] = result;//.split('\n');
-            //     if (i > 500 || result === "ZJSLSDONE\n"){
-            //         break;
-            //     }
-            //     i++;
-            // }
-
-        //    this.send('echo on\n')
-        });// );
-        // this.send('ls\n')
-        //     .then(() => this.read())
-        //     .then(async (res) => {
-        //         // resolve(fileArray);
-        //     })
-        //     .then(() => resolve(fileArray.length));
-        resolve(5);
-        });
-        //let ls = this.lsArray();
-    //    let ws = this;
-        // return new Promise<number>((resolve, reject) => {
-        //     ls.then((res) => {
-        //         ws.read() (res) => {
-        //         res.length;
-        //         });
-        //     });
-        // });
     }
 
     private convIHex(source: string): string {
