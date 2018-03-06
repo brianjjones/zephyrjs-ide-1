@@ -171,6 +171,7 @@ export class WebUsbPort {
             if (data.length === 0) {
                 reject('Empty data');
             }
+            console.log("BJONES port sending " + data);
             this.device.transferOut(2, this.encoder.encode(data))
             .then(() => { resolve(); })
             .catch((error: string) => { reject(error); });
@@ -197,7 +198,21 @@ export class WebUsbPort {
 
     public run(data: string, throttle: boolean): Promise<string> {
         if (this.ideMode) {
-            return  this.sendIdeRun(data);  // data: a file name
+            let webusbThis = this;
+            return new Promise<string>((resolve, reject) => {
+                console.log("BJONES starting run");
+                webusbThis.sendIdeSave('temp.dat', data, throttle).then(() => {
+                    console.log("BJONES done with Save");
+                    webusbThis.sendIdeRun('temp.dat').then((result: string) => {
+                        console.log("BJONES done with sendIdeRun, resolving = " + result);
+                        resolve(result);  // data: a file name
+                    });
+                })
+                .catch((error: string) => {
+                    console.log("BJONES something went wrong. " + error);
+                    reject(error);
+                });
+            });
         }
         return this.sendConsoleRun(data, throttle);  // data: stream (program)
     }
@@ -227,7 +242,7 @@ export class WebUsbPort {
 
             this.state = 'save';
             let first = '{save ' + filename + ' ' + '$';  // stream start
-            let last = '#}\n';  // stream end
+            //let last = '#}\n';  // stream end
             this.send(first)
                 .then(async () => {
                     var count = 0;
@@ -244,13 +259,17 @@ export class WebUsbPort {
                         count ++;
                     }
                 })
-                .then(() => this.send(last))
-                .then(() => { resolve(); })
+//                .then(() => this.send(last))  //BJONES can I replace this with #\n}\n\n?
+                .then(() => this.send('#'))
+                .then(() => this.send('}'))
+                .then(() => this.send('\n'))
+                .then(() => { console.log("BJONES done with the save, resolve"); resolve("BJONES RESOLVE FOR SAVE"); })
                 .catch((error:string) => { reject(error); });
         });
     }
 
     public sendIdeRun(filename: string): Promise<string> {
+        console.log("BJONES in sendIdeRun, calling " + '{run ' + filename + '}\n');
         this.state = 'run';
         return this.send('{run ' + filename + '}\n');
     }

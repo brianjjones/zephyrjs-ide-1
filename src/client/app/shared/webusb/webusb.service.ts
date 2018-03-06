@@ -11,6 +11,7 @@ export class WebUsbService {
     public port: WebUsbPort = null;
     private record = false;
     private incomingData = []; // Array<string>;
+    private incomingDataStr = "";
     private incomingCB: any = null;
     private fileCount : number = 0;
     private fileArray = [];
@@ -20,17 +21,30 @@ export class WebUsbService {
     // Handle incoming data from the device
     public onReceive(data: string) {
         // If this is the closing message, call any callbacks
-        if (data === '[33macm> [39;0m') {
-            this.record = false;
-            // Call the callback and reset data
-            if (this.incomingCB) {
-                this.incomingCB();
-            }
-            this.incomingCB = null;
-            this.incomingData = [];
-        } else if (this.record) {
-            this.incomingData.push(data);
+        if (this.record) {
+            this.incomingDataStr += data;
         }
+
+        // if ((this.incomingDataStr.match(/}/g) || []).length ==
+        //     (this.incomingDataStr.match(/{/g) || []).length)
+        //BJONES TODO add check here for '"status"' to indicate its the last sting
+        if (this.replyDone(this.incomingDataStr) {
+            console.log("BJONES done getting reply");
+            console.log(this.incomingDataStr);
+            this.incomingDataStr = "";
+            this.record = false;
+        }
+        // if (data === '[33macm> [39;0m') {
+        //     this.record = false;
+        //     // Call the callback and reset data
+        //     if (this.incomingCB) {
+        //         this.incomingCB();
+        //     }
+        //     this.incomingCB = null;
+        //     this.incomingData = [];
+        // } else if (this.record) {
+        //     this.incomingData.push(data);
+        // }
     }
 
     public onReceiveError(error: DOMException) {
@@ -121,6 +135,7 @@ export class WebUsbService {
     }
 
     public send(data: string): Promise<string> {
+        console.log("Sending " + data);
         return this.port.send(data);
     }
 
@@ -173,27 +188,29 @@ export class WebUsbService {
             webusbThis.record = true;
             webusbThis.fileArray = [];
             return( new Promise<Array<string>> ((resolve, reject) => {
-                webusbThis.sendWithCB('ls\n', function () {
-                    let retArray = webusbThis.incomingData;
-                    for (var i = 0; i < webusbThis.incomingData.length; i++) {
-                        retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
-                        if (retArray[i] === '') {
-                            retArray.splice(i, 1);
-                            i--;
-                        }
-                    }
-                    let itr = 0;
-                    for (i = 0; i < retArray.length; i++) {
-                        if (!isNaN(retArray[i] as any)) {
-                            webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
-                            itr++;
-                            i++;
-                        }
-                    }
-                    retArray = webusbThis.fileArray;
-                    webusbThis.fileCount = retArray.length;
-                    resolve(retArray);
-                });
+                webusbThis.port.sendIdeList();
+                // webusbThis.sendWithCB('{ls}\n', function () {
+                //     console.log("BJONES in CB");
+                //     let retArray = webusbThis.incomingData;
+                //     for (var i = 0; i < webusbThis.incomingData.length; i++) {
+                //         retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
+                //         if (retArray[i] === '') {
+                //             retArray.splice(i, 1);
+                //             i--;
+                //         }
+                //     }
+                //     let itr = 0;
+                //     for (i = 0; i < retArray.length; i++) {
+                //         if (!isNaN(retArray[i] as any)) {
+                //             webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
+                //             itr++;
+                //             i++;
+                //         }
+                //     }
+                //     retArray = webusbThis.fileArray;
+                //     webusbThis.fileCount = retArray.length;
+                //     resolve(retArray);
+                // });
             }));
         } else {
             return new Promise((resolve, reject) => {
@@ -215,5 +232,14 @@ export class WebUsbService {
 
     public deviceFileCount(): number {
         return this.fileCount;
+    }
+
+    private replyDone = function (str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 }
