@@ -15,22 +15,47 @@ export class WebUsbService {
     private incomingCB: any = null;
     private fileCount : number = 0;
     private fileArray = [];
+    //BJONES private consolePrint = null;
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
+    }
+    public consolePrint(data: string) {
+        // To be set once connected
     }
     // Handle incoming data from the device
     public onReceive(data: string) {
         // If this is the closing message, call any callbacks
+        if (this.incomingReply(data)) {
+            console.log("BJONES incoming reply..." + data);
+            this.record = true;
+            this.incomingDataStr = "";
+        }
+
         if (this.record) {
             this.incomingDataStr += data;
+            console.log("BJONES Continuing reply..." + this.incomingDataStr);
+        }
+        else {
+            // This isn't an ashell reply, print it
+            if (this.consolePrint) {
+                this.consolePrint(data);
+            }
+            console.log(data);
         }
 
         // if ((this.incomingDataStr.match(/}/g) || []).length ==
         //     (this.incomingDataStr.match(/{/g) || []).length)
         //BJONES TODO add check here for '"status"' to indicate its the last sting
-        if (this.replyDone(this.incomingDataStr) {
+        if (this.record && this.replyDone(data)) {
             console.log("BJONES done getting reply");
             console.log(this.incomingDataStr);
+            let replyObj = this.parseJSON(this.incomingDataStr);
+            if (replyObj) {
+                if (this.incomingCB) {
+                        this.incomingCB(replyObj);
+                    }
+                console.log("BJONES ITS A VALID REPLY!!!!");
+            }
             this.incomingDataStr = "";
             this.record = false;
         }
@@ -155,7 +180,7 @@ export class WebUsbService {
     public load(data: string) : Promise<string> {
         let webusbThis = this;
         let loadStr = '';
-        webusbThis.record = true;
+        //webusbThis.record = true;
         return( new Promise<string> ((resolve, reject) => {
             webusbThis.sendWithCB('cat ' + data + '\n', function () {
                 // Remove the command line from the array
@@ -185,32 +210,33 @@ export class WebUsbService {
         if (this.port) {
             let retArray = [];
             let webusbThis = this;
-            webusbThis.record = true;
+            //BJONES webusbThis.record = true;
             webusbThis.fileArray = [];
             return( new Promise<Array<string>> ((resolve, reject) => {
-                webusbThis.port.sendIdeList();
-                // webusbThis.sendWithCB('{ls}\n', function () {
-                //     console.log("BJONES in CB");
-                //     let retArray = webusbThis.incomingData;
-                //     for (var i = 0; i < webusbThis.incomingData.length; i++) {
-                //         retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
-                //         if (retArray[i] === '') {
-                //             retArray.splice(i, 1);
-                //             i--;
-                //         }
-                //     }
-                //     let itr = 0;
-                //     for (i = 0; i < retArray.length; i++) {
-                //         if (!isNaN(retArray[i] as any)) {
-                //             webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
-                //             itr++;
-                //             i++;
-                //         }
-                //     }
-                //     retArray = webusbThis.fileArray;
-                //     webusbThis.fileCount = retArray.length;
-                //     resolve(retArray);
-                // });
+                //webusbThis.port.sendIdeList();
+                webusbThis.sendWithCB('{ls}\n', function (retObj: object) {
+                    console.log("BJONES in CB");
+                    webusbThis.fileArray = retObj.data;
+                    // for (var i = 0; i < retArray.length; i++) {
+                    //     retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
+                    //     if (retArray[i] === '') {
+                    //         retArray.splice(i, 1);
+                    //         i--;
+                    //     }
+                    // }
+                    // let itr = 0;
+                    // for (var i = 0; i < retArray.length; i++) {
+                    //     webusbThis.fileArray[i] = {size: retArray[i].size, name: retArray[i].name};
+                    //     // if (!isNaN(retArray[i] as any)) {
+                    //     //     webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
+                    //     //     itr++;
+                    //     //     i++;
+                    //     // }
+                    // }
+                    //retArray = webusbThis.fileArray;
+                    webusbThis.fileCount = webusbThis.fileArray.length;
+                    resolve(webusbThis.fileArray);
+                });
             }));
         } else {
             return new Promise((resolve, reject) => {
@@ -234,12 +260,23 @@ export class WebUsbService {
         return this.fileCount;
     }
 
-    private replyDone = function (str) {
+    private replyDone(str: string) {
+    //    var tmpStr = str.replace(/(\r\n|\n|\r)/gm,"");  // Strip newlines
+        return (/.*"status"\s*:\s*([0-9]+).*$/m).test(str);
+    }
+
+    private incomingReply(str: string) {
+    //    var tmpStr = str.replace(/(\r\n|\n|\r)/gm,"");  // Strip newlines
+        return (/{\s*"reply"\s*:.*$/m).test(str);
+    }
+
+    private parseJSON = function (str: string): object {
+        let retVal = null;
         try {
-            JSON.parse(str);
+            retVal = JSON.parse(str);
+            return retVal;
         } catch (e) {
-            return false;
+            return retVal;
         }
-        return true;
     }
 }

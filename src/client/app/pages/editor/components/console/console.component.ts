@@ -58,6 +58,7 @@ export class ConsoleComponent implements AfterViewInit {
                 };
 
                 io.onVTKeystroke = (str: string) => {
+                    send(str);
                 // Ignore keypresses
                 };
 
