@@ -24,7 +24,6 @@ export class WebUsbService {
     private fileData = "";
     private replyState: string; //REPLY = REPLY.IDLE;
 
-    //BJONES private consolePrint = null;
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
     }
@@ -36,9 +35,7 @@ export class WebUsbService {
         // If this is the closing message, call any callbacks
         //this.consolePrint(data);
         let replyType = this.incomingReply(data);
-        console.log("BJONES ---> REPLY OF TYPE + " + replyType)
         if (replyType && replyType !== "none") {
-            console.log("BJONES incoming reply..." + replyType);
             this.incomingDataStr = "";
             this.replyState = replyType;
         }
@@ -68,9 +65,7 @@ export class WebUsbService {
 
         // if ((this.incomingDataStr.match(/}/g) || []).length ==
         //     (this.incomingDataStr.match(/{/g) || []).length)
-        //BJONES TODO add check here for '"status"' to indicate its the last sting
         if (this.replyState && this.replyDone(data)) {
-            console.log("BJONES done getting reply");
             //console.log(this.incomingDataStr);
 
             switch(this.replyState) {
@@ -94,7 +89,6 @@ export class WebUsbService {
             //     if (this.incomingCB) {
             //             this.incomingCB(replyObj);
             //         }
-            //     console.log("BJONES ITS A VALID REPLY!!!!");
             // }
 
 
@@ -252,12 +246,10 @@ export class WebUsbService {
         if (this.port) {
             let retArray = [];
             let webusbThis = this;
-            //BJONES webusbThis.record = true;
             webusbThis.fileArray = [];
             return( new Promise<Array<string>> ((resolve, reject) => {
                 //webusbThis.port.sendIdeList();
                 webusbThis.sendWithCB('{ls}\n', function (retObj: object) {
-                    console.log("BJONES in CB");
                     webusbThis.fileArray = retObj.data;
                     // for (var i = 0; i < retArray.length; i++) {
                     //     retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
