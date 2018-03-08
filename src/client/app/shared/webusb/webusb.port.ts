@@ -171,7 +171,7 @@ export class WebUsbPort {
             if (data.length === 0) {
                 reject('Empty data');
             }
-            console.log("BJONES port sending " + data);
+            console.log("BJONES public send:" + data + ":");
             this.device.transferOut(2, this.encoder.encode(data))
             .then(() => { resolve(); })
             .catch((error: string) => { reject(error); });
@@ -201,8 +201,7 @@ export class WebUsbPort {
             let webusbThis = this;
             return new Promise<string>((resolve, reject) => {
                 console.log("BJONES starting run");
-                webusbThis.sendIdeSave('temp.dat', data, throttle).then(() => {
-                    console.log("BJONES done with Save");
+                webusbThis.sendIdeSave('temp.dat', data, throttle).then(() => {                    
                     webusbThis.sendIdeRun('temp.dat').then((result: string) => {
                         console.log("BJONES done with sendIdeRun, resolving = " + result);
                         resolve(result);  // data: a file name
@@ -242,11 +241,12 @@ export class WebUsbPort {
 
             this.state = 'save';
             let first = '{save ' + filename + ' ' + '$';  // stream start
-            //let last = '#}\n';  // stream end
+            let last = '#}\0';  // stream end
             this.send(first)
                 .then(async () => {
                     var count = 0;
                     for (let line of data.split('\n')) {
+                        //BJONES TODO: LOOK UP how to tell if this is the last line and append #}
                         // Every 20 lines sleep for a moment to let ashell
                         // catch up if throttle is enabled.
                         if (!throttle || count < 20) {
@@ -258,11 +258,13 @@ export class WebUsbPort {
                         }
                         count ++;
                     }
+                //    this.send(last);
                 })
-//                .then(() => this.send(last))  //BJONES can I replace this with #\n}\n\n?
-                .then(() => this.send('#'))
-                .then(() => this.send('}'))
-                .then(() => this.send('\n'))
+                 .then(() => this.send(last))  //BJONES can I replace this with #\n}\n\n?
+                // .then(() => this.send('\n'))
+                // .then(() => this.send('#'))
+                // .then(() => this.send('}'))
+                // .then(() => this.send('\r'))
                 .then(() => { console.log("BJONES done with the save, resolve"); resolve("BJONES RESOLVE FOR SAVE"); })
                 .catch((error:string) => { reject(error); });
         });

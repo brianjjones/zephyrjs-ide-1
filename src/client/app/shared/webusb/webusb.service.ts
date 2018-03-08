@@ -2,19 +2,28 @@ import { Injectable } from '@angular/core';
 import { WebUsbPort } from './webusb.port';
 import { SettingsService } from '../../pages/editor/settings.service';
 
+// enum REPLY {
+//     IDLE,
+//     LOAD,
+//     LIST
+// }
+
 /**
  * This class provides the WebUsb service.
  */
 @Injectable()
+
 export class WebUsbService {
     public usb: any = null;
     public port: WebUsbPort = null;
-    private record = false;
     private incomingData = []; // Array<string>;
     private incomingDataStr = "";
     private incomingCB: any = null;
-    private fileCount : number = 0;
+    private fileCount: number = 0;
     private fileArray = [];
+    private fileData = "";
+    private replyState: string; //REPLY = REPLY.IDLE;
+
     //BJONES private consolePrint = null;
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
@@ -25,15 +34,29 @@ export class WebUsbService {
     // Handle incoming data from the device
     public onReceive(data: string) {
         // If this is the closing message, call any callbacks
-        if (this.incomingReply(data)) {
-            console.log("BJONES incoming reply..." + data);
-            this.record = true;
+        //this.consolePrint(data);
+        let replyType = this.incomingReply(data);
+        console.log("BJONES ---> REPLY OF TYPE + " + replyType)
+        if (replyType && replyType !== "none") {
+            console.log("BJONES incoming reply..." + replyType);
             this.incomingDataStr = "";
+            this.replyState = replyType;
         }
 
-        if (this.record) {
-            this.incomingDataStr += data;
-            console.log("BJONES Continuing reply..." + this.incomingDataStr);
+        if (this.replyState) {
+            switch(this.replyState) {
+                case "cat":
+                    // Skip the reply lines by only recording stuff between
+                    if (replyType === null)
+                        this.fileData += data;
+                break;
+                case "list":
+                    this.incomingDataStr += data;
+                break;
+                default:
+                break;
+            }
+            //this.incomingDataStr += data;
         }
         else {
             // This isn't an ashell reply, print it
@@ -46,28 +69,45 @@ export class WebUsbService {
         // if ((this.incomingDataStr.match(/}/g) || []).length ==
         //     (this.incomingDataStr.match(/{/g) || []).length)
         //BJONES TODO add check here for '"status"' to indicate its the last sting
-        if (this.record && this.replyDone(data)) {
+        if (this.replyState && this.replyDone(data)) {
             console.log("BJONES done getting reply");
-            console.log(this.incomingDataStr);
-            let replyObj = this.parseJSON(this.incomingDataStr);
-            if (replyObj) {
-                if (this.incomingCB) {
+            //console.log(this.incomingDataStr);
+
+            switch(this.replyState) {
+                case "cat":
+                    if (this.incomingCB)
+                        this.incomingCB(this.fileData);
+                    this.fileData = "";
+                break;
+                case "list":
+                    let replyObj = this.parseJSON(this.incomingDataStr);
+                    if (this.incomingCB)
                         this.incomingCB(replyObj);
-                    }
-                console.log("BJONES ITS A VALID REPLY!!!!");
+                    this.incomingDataStr = "";
+                break;
+                default:
+                break;
             }
-            this.incomingDataStr = "";
-            this.record = false;
+
+            // let replyObj = this.parseJSON(this.incomingDataStr);
+            // if (replyObj) {
+            //     if (this.incomingCB) {
+            //             this.incomingCB(replyObj);
+            //         }
+            //     console.log("BJONES ITS A VALID REPLY!!!!");
+            // }
+
+
+            this.replyState = null;
+            this.incomingCB = null;
         }
         // if (data === '[33macm> [39;0m') {
-        //     this.record = false;
         //     // Call the callback and reset data
         //     if (this.incomingCB) {
         //         this.incomingCB();
         //     }
         //     this.incomingCB = null;
         //     this.incomingData = [];
-        // } else if (this.record) {
         //     this.incomingData.push(data);
         // }
     }
@@ -182,11 +222,12 @@ export class WebUsbService {
         let loadStr = '';
         //webusbThis.record = true;
         return( new Promise<string> ((resolve, reject) => {
-            webusbThis.sendWithCB('cat ' + data + '\n', function () {
+            webusbThis.sendWithCB('{cat ' + data + '}\n', function (retStr: string) {
                 // Remove the command line from the array
-                webusbThis.incomingData.splice(0, 2);
-                loadStr = webusbThis.incomingData.join('');
-                resolve(loadStr);
+                //webusbThis.fileArray = retObj.data;
+                //webusbThis.incomingData.splice(0, 2);q
+            //    loadStr = webusbThis.incomingData.join('');
+                resolve(retStr);
             });
         }));
     }
@@ -198,12 +239,13 @@ export class WebUsbService {
     }
 
     public rm(data: string) : Promise<string> {
-        let webusbThis = this;
-        return (new Promise<string> ((resolve, reject) => {
-            webusbThis.sendWithCB('rm ' + data + '\n', function() {
-                resolve('rm ' + data + ' done');
-            });
-        }));
+        return this.port.sendIdeRemove(data);
+        // let webusbThis = this;
+        // return (new Promise<string> ((resolve, reject) => {
+        //     webusbThis.sendWithCB('rm ' + data + '\n', function() {
+        //         resolve('rm ' + data + ' done');
+        //     });
+        // }));
     }
 
     public lsArray(): Promise<Array<string>> {
@@ -262,12 +304,26 @@ export class WebUsbService {
 
     private replyDone(str: string) {
     //    var tmpStr = str.replace(/(\r\n|\n|\r)/gm,"");  // Strip newlines
+        if (this.replyState === "cat") {
+            return (/"data":[\s\S]"end"/).test(str);
+        }
+
         return (/.*"status"\s*:\s*([0-9]+).*$/m).test(str);
     }
 
-    private incomingReply(str: string) {
+    private incomingReply(str: string): string {
     //    var tmpStr = str.replace(/(\r\n|\n|\r)/gm,"");  // Strip newlines
-        return (/{\s*"reply"\s*:.*$/m).test(str);
+        let replyObj = ((/"reply"(.*?)"(.*?)"/).exec(str));
+//        if ((/{\s*"reply"\s*:.*$/m).test(str)) {
+        if (replyObj) {
+            let replyStr = replyObj[0];
+            let splitObj = replyStr.split(':').map(item => item.trim());
+            if (splitObj.length == 2)
+                return splitObj[1].replace(/['"]+/g, '');     // Return the reply type
+            else
+                return null;
+        }
+        return null;
     }
 
     private parseJSON = function (str: string): object {
