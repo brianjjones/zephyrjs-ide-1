@@ -2,12 +2,6 @@ import { Injectable } from '@angular/core';
 import { WebUsbPort } from './webusb.port';
 import { SettingsService } from '../../pages/editor/settings.service';
 
-// enum REPLY {
-//     IDLE,
-//     LOAD,
-//     LIST
-// }
-
 /**
  * This class provides the WebUsb service.
  */
@@ -16,30 +10,31 @@ import { SettingsService } from '../../pages/editor/settings.service';
 export class WebUsbService {
     public usb: any = null;
     public port: WebUsbPort = null;
-    private incomingData = []; // Array<string>;
+    private incomingData = [];
     private incomingDataStr = "";
     private incomingCB: any = null;
     private fileCount: number = 0;
     private fileArray = [];
     private fileData = "";
-    private replyState: string; //REPLY = REPLY.IDLE;
+    private replyState: string;
 
     constructor(private settingsService: SettingsService) {
         this.usb = (navigator as any).usb;
     }
+
     public consolePrint(data: string) {
         // To be set once connected
     }
+
     // Handle incoming data from the device
     public onReceive(data: string) {
-        // If this is the closing message, call any callbacks
-        //this.consolePrint(data);
+        // Check if this is a reply message
         let replyType = this.incomingReply(data);
         if (replyType && replyType !== "none") {
             this.incomingDataStr = "";
             this.replyState = replyType;
         }
-
+        // If currenly receiving a reply message stream, handle it
         if (this.replyState) {
             switch(this.replyState) {
                 case "cat":
@@ -53,21 +48,16 @@ export class WebUsbService {
                 default:
                 break;
             }
-            //this.incomingDataStr += data;
         }
         else {
-            // This isn't an ashell reply, print it
+            // This is a console print message
             if (this.consolePrint) {
                 this.consolePrint(data);
             }
             console.log(data);
         }
 
-        // if ((this.incomingDataStr.match(/}/g) || []).length ==
-        //     (this.incomingDataStr.match(/{/g) || []).length)
         if (this.replyState && this.replyDone(data)) {
-            //console.log(this.incomingDataStr);
-
             switch(this.replyState) {
                 case "cat":
                     if (this.incomingCB)
@@ -80,30 +70,16 @@ export class WebUsbService {
                         this.incomingCB(replyObj);
                     this.incomingDataStr = "";
                 break;
+                case "rm":
+                    if (this.incomingCB)
+                        this.incomingCB(replyObj);
+                break;
                 default:
                 break;
             }
-
-            // let replyObj = this.parseJSON(this.incomingDataStr);
-            // if (replyObj) {
-            //     if (this.incomingCB) {
-            //             this.incomingCB(replyObj);
-            //         }
-            // }
-
-
             this.replyState = null;
             this.incomingCB = null;
         }
-        // if (data === '[33macm> [39;0m') {
-        //     // Call the callback and reset data
-        //     if (this.incomingCB) {
-        //         this.incomingCB();
-        //     }
-        //     this.incomingCB = null;
-        //     this.incomingData = [];
-        //     this.incomingData.push(data);
-        // }
     }
 
     public onReceiveError(error: DOMException) {
@@ -194,7 +170,6 @@ export class WebUsbService {
     }
 
     public send(data: string): Promise<string> {
-        console.log("Sending " + data);
         return this.port.send(data);
     }
 
@@ -214,13 +189,8 @@ export class WebUsbService {
     public load(data: string) : Promise<string> {
         let webusbThis = this;
         let loadStr = '';
-        //webusbThis.record = true;
         return( new Promise<string> ((resolve, reject) => {
             webusbThis.sendWithCB('{cat ' + data + '}\n', function (retStr: string) {
-                // Remove the command line from the array
-                //webusbThis.fileArray = retObj.data;
-                //webusbThis.incomingData.splice(0, 2);q
-            //    loadStr = webusbThis.incomingData.join('');
                 resolve(retStr);
             });
         }));
@@ -233,13 +203,12 @@ export class WebUsbService {
     }
 
     public rm(data: string) : Promise<string> {
-        return this.port.sendIdeRemove(data);
-        // let webusbThis = this;
-        // return (new Promise<string> ((resolve, reject) => {
-        //     webusbThis.sendWithCB('rm ' + data + '\n', function() {
-        //         resolve('rm ' + data + ' done');
-        //     });
-        // }));
+        let webusbThis = this;
+        return (new Promise<string> ((resolve, reject) => {
+            webusbThis.sendWithCB('{rm ' + data + '}\n', function() {
+                resolve('rm ' + data + ' done');
+            });
+        }));
     }
 
     public lsArray(): Promise<Array<string>> {
@@ -248,26 +217,8 @@ export class WebUsbService {
             let webusbThis = this;
             webusbThis.fileArray = [];
             return( new Promise<Array<string>> ((resolve, reject) => {
-                //webusbThis.port.sendIdeList();
-                webusbThis.sendWithCB('{ls}\n', function (retObj: object) {
+                webusbThis.sendWithCB('{ls}\n', function (retObj: {"data":Array<object>}) {
                     webusbThis.fileArray = retObj.data;
-                    // for (var i = 0; i < retArray.length; i++) {
-                    //     retArray[i] = retArray[i].replace(/[^0-9a-z\.]/gi, '');
-                    //     if (retArray[i] === '') {
-                    //         retArray.splice(i, 1);
-                    //         i--;
-                    //     }
-                    // }
-                    // let itr = 0;
-                    // for (var i = 0; i < retArray.length; i++) {
-                    //     webusbThis.fileArray[i] = {size: retArray[i].size, name: retArray[i].name};
-                    //     // if (!isNaN(retArray[i] as any)) {
-                    //     //     webusbThis.fileArray[itr] = {size: retArray[i], name: retArray[i + 1]};
-                    //     //     itr++;
-                    //     //     i++;
-                    //     // }
-                    // }
-                    //retArray = webusbThis.fileArray;
                     webusbThis.fileCount = webusbThis.fileArray.length;
                     resolve(webusbThis.fileArray);
                 });
@@ -295,23 +246,20 @@ export class WebUsbService {
     }
 
     private replyDone(str: string) {
-    //    var tmpStr = str.replace(/(\r\n|\n|\r)/gm,"");  // Strip newlines
         if (this.replyState === "cat") {
             return (/"data":[\s\S]"end"/).test(str);
         }
-
         return (/.*"status"\s*:\s*([0-9]+).*$/m).test(str);
     }
 
+    // Returns the reply type if its a reply, null if it is not a reply
     private incomingReply(str: string): string {
-    //    var tmpStr = str.replace(/(\r\n|\n|\r)/gm,"");  // Strip newlines
         let replyObj = ((/"reply"(.*?)"(.*?)"/).exec(str));
-//        if ((/{\s*"reply"\s*:.*$/m).test(str)) {
         if (replyObj) {
             let replyStr = replyObj[0];
             let splitObj = replyStr.split(':').map(item => item.trim());
             if (splitObj.length == 2)
-                return splitObj[1].replace(/['"]+/g, '');     // Return the reply type
+                return splitObj[1].replace(/['"]+/g, '');
             else
                 return null;
         }

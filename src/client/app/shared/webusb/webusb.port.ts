@@ -199,9 +199,9 @@ export class WebUsbPort {
         if (this.ideMode) {
             let webusbThis = this;
             return new Promise<string>((resolve, reject) => {
-                webusbThis.sendIdeSave('temp.dat', data, throttle).then(() => {                    
+                webusbThis.sendIdeSave('temp.dat', data, throttle).then(() => {
                     webusbThis.sendIdeRun('temp.dat').then((result: string) => {
-                        resolve(result);  // data: a file name
+                        resolve(result);
                     });
                 })
                 .catch((error: string) => {
@@ -253,13 +253,8 @@ export class WebUsbPort {
                         }
                         count ++;
                     }
-                //    this.send(last);
                 })
-                 .then(() => this.send(last)) 
-                // .then(() => this.send('\n'))
-                // .then(() => this.send('#'))
-                // .then(() => this.send('}'))
-                // .then(() => this.send('\r'))
+                .then(() => this.send(last))
                 .then(() => { resolve("Save complete"); })
                 .catch((error:string) => { reject(error); });
         });
