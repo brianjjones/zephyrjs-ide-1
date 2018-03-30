@@ -25,6 +25,9 @@ export class WebUsbPort {
     reading: boolean;
     message: string;
     command: any;
+    dataSaved: boolean;
+    saveData: Array<string>;
+    runAfterSave: boolean;
 
     constructor(device: any) {
         this.device = device;
@@ -38,6 +41,8 @@ export class WebUsbPort {
         this.reading = false;
         this.command = null;
         this.webusb_iface = this.ideMode ? WEBUSB_RAW : WEBUSB_UART;
+        this.dataSaved = false;
+        this.runAfterSave = false;
     }
 
     public onReceive(data: string) {
@@ -190,7 +195,7 @@ export class WebUsbPort {
 
     public save(filename: string, data: string, throttle: boolean): Promise<string> {
         if (this.ideMode) {
-            return  this.sendIdeSave(filename, data, throttle);
+            return this.sendIdeSaveStart(filename, data);
         }
         return this.sendConsoleSave(filename, data, throttle);
     }
@@ -198,15 +203,16 @@ export class WebUsbPort {
     public run(data: string, throttle: boolean): Promise<string> {
         if (this.ideMode) {
             let webusbThis = this;
+            this.runAfterSave = true;
             return new Promise<string>((resolve, reject) => {
-                webusbThis.sendIdeSave('temp.dat', data, throttle).then(() => {
-                    webusbThis.sendIdeRun('temp.dat').then((result: string) => {
-                        resolve(result);
-                    });
-                })
-                .catch((error: string) => {
-                    reject(error);
-                });
+                webusbThis.sendIdeSaveStart('temp.dat', data); //.then(() => {
+                    // webusbThis.sendIdeRun('temp.dat').then((result: string) => {
+                    //     resolve(result);
+                    // });
+                // })
+                // .catch((error: string) => {
+                //     reject(error);
+                // });
             });
         }
         return this.sendConsoleRun(data, throttle);  // data: stream (program)
@@ -225,40 +231,74 @@ export class WebUsbPort {
         // TODO: start timer for reply
     }
 
-    public sendIdeSave(filename: string, data: string, throttle: boolean): Promise<string> {
+    public sendIdeSaveStart(filename: string, data: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            if (data.length === 0) {
-                reject('Empty data');
-            }
-
-            if (filename.length === 0) {
-                reject('Empty file name');
-            }
-
-            this.state = 'save';
-            let first = '{save ' + filename + ' ' + '$';  // stream start
-            let last = '#}\0';  // stream end
-            this.send(first)
-                .then(async () => {
-                    var count = 0;
-                    for (let line of data.split('\n')) {
-                        // Every 20 lines sleep for a moment to let ashell
-                        // catch up if throttle is enabled.
-                        if (!throttle || count < 20) {
-                            this.send(line + '\n');
-                        } else {
-                            await this.sleep(700);
-                            this.send(line + '\n');
-                            count = 0;
-                        }
-                        count ++;
-                    }
-                })
-                .then(() => this.send(last))
-                .then(() => { resolve("Save complete"); })
-                .catch((error:string) => { reject(error); });
+            this.saveData = data.split('\n');
+            this.runAfterSave = true;
+            this.send('{save ' + filename + ' ' + '$')
+            .then(() => {
+                 this.sendIdeSave();
+                 resolve("Saving to file");
+             })
+            .catch((error:string) => { reject(error); });
         });
     }
+
+    public sendIdeSaveEnd(filename: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.send('#}')
+            .then(() => { resolve(true); })
+            .catch((error:string) => { reject(false); });
+        });
+    }
+
+    public sendIdeSave() {
+        for (var i = 0; i < 3; i++) {
+            let str = this.saveData.shift();// + '\n';
+            if (str)
+                this.send(str + '\n');
+
+            if (this.saveData.length === 0 && this.runAfterSave) {
+                this.sendIdeRun('temp.dat');
+                this.runAfterSave = false;
+            }
+        }
+    }
+
+    // public sendIdeSave(filename: string, data: string, throttle: boolean): Promise<string> {
+    //     return new Promise<string>((resolve, reject) => {
+    //         if (data.length === 0) {
+    //             reject('Empty data');
+    //         }
+    //
+    //         if (filename.length === 0) {
+    //             reject('Empty file name');
+    //         }
+    //
+    //         this.state = 'save';
+    //         let first = '{save ' + filename + ' ' + '$';  // stream start
+    //         let last = '#}\0';  // stream end
+    //         this.send(first)
+    //             .then(async () => {
+    //                 var count = 0;
+    //                 for (let line of data.split('\n')) {
+    //                     // Every 20 lines sleep for a moment to let ashell
+    //                     // catch up if throttle is enabled.
+    //                     if (!throttle || count < 20) {
+    //                         this.send(line + '\n');
+    //                     } else {
+    //                         await this.sleep(700);
+    //                         this.send(line + '\n');
+    //                         count = 0;
+    //                     }
+    //                     count ++;
+    //                 }
+    //             })
+    //             .then(() => this.send(last))
+    //             .then(() => { resolve("Save complete"); })
+    //             .catch((error:string) => { reject(error); });
+    //     });
+    // }
 
     public sendIdeRun(filename: string): Promise<string> {
         this.state = 'run';
