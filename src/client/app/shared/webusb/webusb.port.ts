@@ -234,7 +234,6 @@ export class WebUsbPort {
     public sendIdeSaveStart(filename: string, data: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             this.saveData = data.split('\n');
-            this.runAfterSave = true;
             this.send('{save ' + filename + ' ' + '$')
             .then(() => {
                  this.sendIdeSave();
@@ -244,7 +243,7 @@ export class WebUsbPort {
         });
     }
 
-    public sendIdeSaveEnd(filename: string): Promise<boolean> {
+    public sendIdeSaveEnd(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.send('#}')
             .then(() => { resolve(true); })
@@ -253,14 +252,20 @@ export class WebUsbPort {
     }
 
     public sendIdeSave() {
-        for (var i = 0; i < 3; i++) {
+        for (var i = 0; i < 2; i++) {
             let str = this.saveData.shift();// + '\n';
-            if (str)
+            if (str) {
                 this.send(str + '\n');
-
-            if (this.saveData.length === 0 && this.runAfterSave) {
-                this.sendIdeRun('temp.dat');
-                this.runAfterSave = false;
+            }
+            if (this.saveData.length === 0) {
+                this.sendIdeSaveEnd().then(async () => {
+                    if (this.runAfterSave) {
+                        // Delay run to ensure device is done with the save
+                        await this.sleep(500);
+                        this.sendIdeRun('temp.dat');
+                        this.runAfterSave = false;
+                    }
+                });
             }
         }
     }

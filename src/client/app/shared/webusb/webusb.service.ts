@@ -47,13 +47,13 @@ export class WebUsbService {
                 break;
                 case "save":
                     this.port.dataSaved = true;
-                    this.incomingCB();
+                    this.port.sendIdeSave();
                 break;
                 default:
                 break;
             }
         }
-        else {
+        else if (replyType === null){
             // This is a console print message
             if (this.consolePrint) {
                 this.consolePrint(data);
@@ -242,7 +242,7 @@ export class WebUsbService {
         }
 
         let throttle = this.settingsService.getDeviceThrottle();
-        this.incomingCB = this.port.sendIdeSave;
+        //this.incomingCB = this.port.sendIdeSave;
         return this.port.save(filename, data, throttle);
     }
 
