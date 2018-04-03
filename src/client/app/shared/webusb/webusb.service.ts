@@ -47,6 +47,7 @@ export class WebUsbService {
                 break;
                 case "save":
                     this.port.dataSaved = true;
+                    this.port.sentNum = 0;
                     this.port.sendIdeSave();
                 break;
                 default:

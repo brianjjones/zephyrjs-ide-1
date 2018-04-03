@@ -28,6 +28,7 @@ export class WebUsbPort {
     dataSaved: boolean;
     saveData: Array<string>;
     runAfterSave: boolean;
+    public sentNum: number;
 
     constructor(device: any) {
         this.device = device;
@@ -43,6 +44,7 @@ export class WebUsbPort {
         this.webusb_iface = this.ideMode ? WEBUSB_RAW : WEBUSB_UART;
         this.dataSaved = false;
         this.runAfterSave = false;
+        this.sentNum = 0;
     }
 
     public onReceive(data: string) {
@@ -176,6 +178,8 @@ export class WebUsbPort {
             if (data.length === 0) {
                 reject('Empty data');
             }
+            this.sentNum++;
+            console.log("Have sent " + this.sentNum + " | " + data);
             this.device.transferOut(2, this.encoder.encode(data))
             .then(() => { resolve(); })
             .catch((error: string) => { reject(error); });
@@ -205,10 +209,10 @@ export class WebUsbPort {
             let webusbThis = this;
             this.runAfterSave = true;
             return new Promise<string>((resolve, reject) => {
-                webusbThis.sendIdeSaveStart('temp.dat', data); //.then(() => {
-                    // webusbThis.sendIdeRun('temp.dat').then((result: string) => {
-                    //     resolve(result);
-                    // });
+                webusbThis.sendIdeSaveStart('temp.dat', data);//.then(() => {
+                //     webusbThis.sendIdeRun('temp.dat').then((result: string) => {
+                //         resolve(result);
+                //     });
                 // })
                 // .catch((error: string) => {
                 //     reject(error);
@@ -236,7 +240,7 @@ export class WebUsbPort {
             this.saveData = data.split('\n');
             this.send('{save ' + filename + ' ' + '$')
             .then(() => {
-                 this.sendIdeSave();
+                 //this.sendIdeSave();
                  resolve("Saving to file");
              })
             .catch((error:string) => { reject(error); });
@@ -252,22 +256,25 @@ export class WebUsbPort {
     }
 
     public sendIdeSave() {
-        for (var i = 0; i < 2; i++) {
-            let str = this.saveData.shift();// + '\n';
-            if (str) {
-                this.send(str + '\n');
-            }
+    //    for (var i = 0; i < 2; i++) {
             if (this.saveData.length === 0) {
                 this.sendIdeSaveEnd().then(async () => {
                     if (this.runAfterSave) {
-                        // Delay run to ensure device is done with the save
-                        await this.sleep(500);
-                        this.sendIdeRun('temp.dat');
                         this.runAfterSave = false;
+                        // Delay run to ensure device is done with the save
+                        await this.sleep(1500);
+                        this.sendIdeRun('temp.dat');
                     }
                 });
+                // Done, return
+                return;
             }
-        }
+            let str = this.saveData.shift();// + '\n';
+            if (typeof(str) === 'string') {
+                //console.log(str + '\n');
+                this.send(str + '\n');
+            }
+    //    }
     }
 
     // public sendIdeSave(filename: string, data: string, throttle: boolean): Promise<string> {
