@@ -46,8 +46,6 @@ export class WebUsbService {
                     this.incomingDataStr += data;
                 break;
                 case "save":
-                    this.port.dataSaved = true;
-                    this.port.sentNum = 0;
                     this.port.sendIdeSave();
                 break;
                 default:
@@ -243,7 +241,6 @@ export class WebUsbService {
         }
 
         let throttle = this.settingsService.getDeviceThrottle();
-        //this.incomingCB = this.port.sendIdeSave;
         return this.port.save(filename, data, throttle);
     }
 
