@@ -34,7 +34,7 @@ export class WebUsbPort {
         this.encoder = new (window as any).TextEncoder('utf-8');
         // IDE protocol related
         this.ideMode = true;  // by default, switch on IDE protocol
-        this.ideVersion = '0.0.1';
+        this.ideVersion = '';
         this.state = 'init';
         this.message = '';
         this.reading = false;
@@ -167,6 +167,7 @@ export class WebUsbPort {
         if (this.webusb_iface === WEBUSB_UART) {
             this.send('\n');
         }
+        this.sendIdeInit();
     }
 
     public send(data: string): Promise<string> {
@@ -235,7 +236,16 @@ export class WebUsbPort {
 
     public sendIdeSaveEnd(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this.send('#}')
+            let sendStr : string;
+
+            if (this.ideVersion == 'webusb') {
+                sendStr = '#}';
+            }
+            else {
+                sendStr = '#}\0';
+            }
+
+            this.send(sendStr)
             .then(() => {
                 this.state = 'idle';
                 resolve(true);
