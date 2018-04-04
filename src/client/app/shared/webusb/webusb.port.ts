@@ -192,6 +192,7 @@ export class WebUsbPort {
     }
 
     public save(filename: string, data: string, throttle: boolean): Promise<string> {
+        this.state = 'save';
         if (this.ideMode) {
             return this.sendIdeSaveStart(filename, data);
         }
@@ -235,13 +236,16 @@ export class WebUsbPort {
     public sendIdeSaveEnd(): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.send('#}')
-            .then(() => { resolve(true); })
+            .then(() => {
+                this.state = 'idle';
+                resolve(true);
+            })
             .catch((error:string) => { reject(false); });
         });
     }
 
     public sendIdeSave() {
-        if (this.saveData.length === 0) {
+        if (this.saveData.length === 0 && this.state === 'save') {
             this.sendIdeSaveEnd().then(async () => {
                 // Check if we need to run the file
                 if (this.runAfterSave) {
