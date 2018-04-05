@@ -12,16 +12,12 @@ export class WebUsbPort {
     device: any;
     decoder: any;
     encoder: any;
-    // rawMode: boolean;
-    // echoMode: boolean;
-    // previousRead: string;
     ashellReady: boolean;
     // IDE protocol related
     state: string;  // init, idle, save, run, stop, list, move, remove, boot, reboot
     webusb_iface: number;  // 0 for raw WebUSB
     reading: boolean;
     message: string;
-    // command: any;
     saveData: Array<string>;
     runAfterSave: boolean;
 
@@ -31,7 +27,6 @@ export class WebUsbPort {
         this.encoder = new (window as any).TextEncoder('utf-8');
         // IDE protocol related
         this.state = 'init';
-        // this.command = null;
         this.webusb_iface = WEBUSB_RAW;
         this.runAfterSave = false;
     }
@@ -45,8 +40,6 @@ export class WebUsbPort {
     }
 
     public connect(): Promise<void> {
-        // this.rawMode = true;
-        // this.echoMode = true;
         this.ashellReady = false;
 
         return new Promise<void>((resolve, reject) => {

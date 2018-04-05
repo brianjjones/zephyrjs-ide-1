@@ -214,6 +214,7 @@ export class WebUsbService {
         }));
     }
 
+    // Returns an array of the files on the device
     public lsArray(): Promise<Array<string>> {
         if (this.port) {
             let retArray = [];
@@ -248,6 +249,7 @@ export class WebUsbService {
         return this.fileCount;
     }
 
+    // Returns true if the reply is properly closed.
     private replyDone(str: string) {
         if (this.replyState === "cat") {
             return (/"data":[\s\S]"end"/).test(str);
