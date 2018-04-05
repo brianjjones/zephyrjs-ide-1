@@ -48,12 +48,6 @@ export class WebUsbService {
                 case "save":
                     this.port.sendIdeSave();
                 break;
-                case "init":
-                    let jsonData = JSON.parse(data);
-                    if (jsonData.data.mode) {
-                        this.port.ideVersion = jsonData.data.mode;
-                    }
-                break;
                 default:
                 break;
             }
