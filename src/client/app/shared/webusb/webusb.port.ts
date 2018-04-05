@@ -171,7 +171,7 @@ export class WebUsbPort {
             let webusbThis = this;
             // Save the file first. Once thats done, it will run temp.dat
             this.runAfterSave = true;
-            return webusbThis.sendIdeSaveStart('temp.dat', data);
+            return webusbThis.save('temp.dat', data, false);
     }
 
     public stop(): Promise<string> {
