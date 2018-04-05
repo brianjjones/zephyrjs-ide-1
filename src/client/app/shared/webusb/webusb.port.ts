@@ -225,12 +225,38 @@ export class WebUsbPort {
 
     public sendIdeSaveStart(filename: string, data: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.saveData = data.split('\n');
-            this.send('{save ' + filename + ' ' + '$')
-            .then(() => {
-                 resolve("Saving to file");
-             })
-            .catch((error:string) => { reject(error); });
+            if (this.ideVersion === 'webusb') {
+                this.saveData = data.split('\n');
+                this.send('{save ' + filename + ' ' + '$')
+                .then(() => {
+                     resolve("Saving to file");
+                 })
+                .catch((error:string) => { reject(error); });
+            }
+            else {
+                this.state = 'save';
+                let first = '{save ' + filename + ' ' + '$';  // stream start
+                let last = '#}\n';  // stream end
+                this.send(first)
+                    .then(async () => {
+                        var count = 0;
+                        for (let line of data.split('\n')) {
+                            // Every 20 lines sleep for a moment to let ashell
+                            // catch up if throttle is enabled.
+                            if (count < 20) {
+                                this.send(line + '\n');
+                            } else {
+                                await this.sleep(700);
+                                this.send(line + '\n');
+                                count = 0;
+                            }
+                            count ++;
+                        }
+                    })
+                    .then(() => this.send(last))
+                    .then(() => { resolve(); })
+                    .catch((error:string) => { reject(error); });
+            }
         });
     }
 
@@ -255,23 +281,25 @@ export class WebUsbPort {
     }
 
     public sendIdeSave() {
-        if (this.saveData.length === 0 && this.state === 'save') {
-            this.sendIdeSaveEnd().then(async () => {
-                // Check if we need to run the file
-                if (this.runAfterSave) {
-                    this.runAfterSave = false;
-                    // Delay run to ensure device is done with the save
-                    await this.sleep(1500);
-                    this.sendIdeRun('temp.dat');
-                }
-            });
-            // Done saving file, return and exit.
-            return;
-        }
+        if (this.ideVersion == 'webusb') {
+            if (this.saveData.length === 0 && this.state === 'save') {
+                this.sendIdeSaveEnd().then(async () => {
+                    // Check if we need to run the file
+                    if (this.runAfterSave) {
+                        this.runAfterSave = false;
+                        // Delay run to ensure device is done with the save
+                        await this.sleep(1500);
+                        this.sendIdeRun('temp.dat');
+                    }
+                });
+                // Done saving file, return and exit.
+                return;
+            }
 
-        let str = this.saveData.shift();
-        if (typeof(str) === 'string') {
-            this.send(str + '\n');
+            let str = this.saveData.shift();
+            if (typeof(str) === 'string') {
+                this.send(str + '\n');
+            }
         }
     }
 
